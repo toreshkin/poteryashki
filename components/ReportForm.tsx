@@ -68,6 +68,11 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
   const [description, setDescription] = useState("");
   const [landmarks, setLandmarks] = useState("");
   const today = new Date().toISOString().slice(0, 10);
+  const yesterday = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  })();
   const [eventDate, setEventDate] = useState(today);
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -87,7 +92,10 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
   const lost = initialType === "lost";
 
   useEffect(() => {
+    // Мост Telegram WebApp существует только в браузере, поэтому читаем его
+    // после монтирования и подставляем @username в контакты.
     const username = initTelegram();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (username) setTelegram(username);
   }, []);
 
@@ -370,12 +378,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
             <div className="flex gap-2">
               {[
                 { value: today, label: "Сегодня" },
-                {
-                  value: new Date(Date.now() - 86400000)
-                    .toISOString()
-                    .slice(0, 10),
-                  label: "Вчера",
-                },
+                { value: yesterday, label: "Вчера" },
               ].map((o) => (
                 <button
                   key={o.value}
@@ -392,9 +395,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
               ))}
               <label className="flex h-11 flex-1 items-center justify-center gap-2 rounded-[13px] border-[1.5px] border-line bg-surface px-3 text-sm font-semibold text-ink-2">
                 <CalendarIcon size={17} />
-                {eventDate !== today &&
-                eventDate !==
-                  new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+                {eventDate !== today && eventDate !== yesterday
                   ? new Date(eventDate).toLocaleDateString("ru-RU")
                   : "Дата"}
                 <input

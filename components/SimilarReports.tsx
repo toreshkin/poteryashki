@@ -42,11 +42,9 @@ function ScoreRing({ score }: { score: number }) {
 
 export default function SimilarReports({
   reportId,
-  reportType,
   similar,
 }: {
   reportId: string;
-  reportType: Report["report_type"];
   similar: SimilarReport[];
 }) {
   const ai = useAiStatus();

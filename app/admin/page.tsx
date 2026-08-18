@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ANIMAL_TYPE_LABELS,
@@ -38,25 +38,32 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("attention");
   const [query, setQuery] = useState("");
 
+  // Рабочий пароль держим в ref: при восстановлении сессии он не должен
+  // проходить через состояние формы — иначе setState прямо в эффекте.
+  const passwordRef = useRef("");
+
+  // Ничего не меняем синхронно: первое обращение к состоянию — только
+  // после ответа сервера, иначе восстановление сессии дёргает лишний рендер.
   const load = useCallback(async (pwd: string) => {
-    setError(null);
     const res = await fetch("/api/admin", { headers: { "x-admin-password": pwd } });
     if (!res.ok) {
       setAuthed(false);
       setError(res.status === 401 ? "Неверный пароль" : "Ошибка сервера");
       return;
     }
+    passwordRef.current = pwd;
+    setError(null);
     setReports(await res.json());
     setAuthed(true);
     sessionStorage.setItem("admin_password", pwd);
   }, []);
 
   useEffect(() => {
+    // sessionStorage доступен только в браузере: восстанавливаем сессию
+    // после монтирования. Состояние меняется уже после ответа сервера.
     const saved = sessionStorage.getItem("admin_password");
-    if (saved) {
-      setPassword(saved);
-      load(saved);
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (saved) load(saved);
   }, [load]);
 
   const stats = useMemo(
@@ -89,11 +96,11 @@ export default function AdminPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-password": password,
+        "x-admin-password": passwordRef.current,
       },
       body: JSON.stringify({ id, action }),
     });
-    if (res.ok) load(password);
+    if (res.ok) load(passwordRef.current);
   }
 
   if (!authed) {

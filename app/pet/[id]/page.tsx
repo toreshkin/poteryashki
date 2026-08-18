@@ -153,11 +153,7 @@ export default async function PetPage({ params }: PageProps<"/pet/[id]">) {
           <ContactLinks report={report} />
         </div>
 
-        <SimilarReports
-          reportId={report.id}
-          reportType={report.report_type}
-          similar={similar}
-        />
+        <SimilarReports reportId={report.id} similar={similar} />
 
         <Sightings report={report} />
 
