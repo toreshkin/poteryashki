@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🐾 Потеряшки (Poteryashki)
 
-## Getting Started
+Карта потерявшихся и найденных животных в Бишкеке. Next.js + Supabase + Leaflet, mobile-first, работает как Telegram WebApp.
 
-First, run the development server:
+## Настройка (один раз)
+
+1. Создайте бесплатный проект на [supabase.com](https://supabase.com).
+2. В **SQL Editor** выполните по очереди:
+   - `supabase/schema.sql` — таблицы, RLS, бакет для фото;
+   - `supabase/seed.sql` — тестовые заявки (необязательно; секретный код у всех `TEST01`).
+3. Скопируйте `.env.local.example` в `.env.local` и заполните:
+   - `NEXT_PUBLIC_SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY` — из **Settings → API Keys** проекта Supabase;
+   - `ADMIN_PASSWORD` — любой пароль для страницы `/admin`.
+
+## Запуск
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте http://localhost:3000 (для мобильного вида — DevTools → режим устройства).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Страницы
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/` — карта с метками (красные — потерялись, зелёные — найдены);
+- `/feed` — лента заявок списком с поиском;
+- `/report` — пошаговая форма заявки, после публикации выдаёт секретный код;
+- `/pet/[id]` — страница заявки: контакты, «поделиться», встречи, похожие рядом, закрытие по коду;
+- `/admin` — модерация: жалобы, скрыть/восстановить/удалить (вход по `ADMIN_PASSWORD`).
 
-## Learn More
+## ИИ-функции (необязательные)
 
-To learn more about Next.js, take a look at the following resources:
+По умолчанию выключены — сайт работает без них, кнопки не показываются.
+Включаются переменной `AI_PROVIDER`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Значение | Что делает |
+| --- | --- |
+| `off` | ИИ выключен (по умолчанию) |
+| `mock` | Тестовые ответы без сети и без затрат — для проверки интерфейса |
+| `gemini` | Google Gemini Flash, есть бесплатный тариф с распознаванием фото |
+| `deepseek` | Дёшево, но без распознавания фото (только текст) |
+| `claude` | Anthropic Claude |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Функции: «Заполнить описание по фото» в форме заявки, поиск обычными словами в ленте,
+оценка совпадения «потерялся ↔ найден» на странице заявки (результаты кэшируются в таблице
+`ai_matches` — выполните `supabase/ai.sql`). ИИ вызывается только по нажатию кнопки,
+с ограничением числа запросов с одного IP.
 
-## Deploy on Vercel
+## PWA — установка как приложение
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Сайт устанавливается на телефон и десктоп: манифест отдаётся по
+`/manifest.webmanifest` (генерируется в `app/manifest.ts`), иконки лежат в
+`public/icons`, сервис-воркер — `public/sw.js`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Android/Chrome**: меню браузера → «Установить приложение».
+- **iOS/Safari**: «Поделиться» → «На экран Домой».
+- Ярлыки долгого нажатия по иконке: «Потерялся», «Нашёл», «Лента».
+- Офлайн: оболочка и статика кэшируются, при отсутствии сети открывается
+  `/offline`. Заявки намеренно **не** кэшируются — устаревшая карта потеряшек
+  хуже, чем её отсутствие.
+
+Сервис-воркер регистрируется только в production-сборке
+(`npm run build && npm start`), в `npm run dev` он выключен, чтобы не мешать
+горячей перезагрузке.
+
+## Деплой и Telegram-бот
+
+1. Задеплойте на [Vercel](https://vercel.com) (импорт репозитория, добавьте те же три env-переменные).
+2. В Telegram у [@BotFather](https://t.me/BotFather): `/newbot` → затем `/mybots` → выбрать бота → **Bot Settings → Menu Button** → указать URL сайта. Сайт откроется внутри Telegram как Mini App.

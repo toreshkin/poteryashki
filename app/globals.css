@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Бумажная база */
+  --paper: #faf8f5;
+  --surface: #ffffff;
+  --ink: #23201c;
+  --ink-2: #6e675e;
+  --ink-3: #9a9288;
+  --line: #e9e3da;
+  --line-soft: #efeae2;
+  --muted-tint: #f2eee8;
+
+  /* Статусы — одинаковая насыщенность, разный тон */
+  --lost: #c8452f;
+  --lost-tint: #fbeeea;
+  --found: #1b7f4e;
+  --found-tint: #e9f3ec;
+  --sight: #b4741a;
+  --sight-tint: #fdf6ea;
+  --ai: #6b4fbb;
+  --ai-tint: #f0ebfb;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-muted-tint: var(--muted-tint);
+  --color-lost: var(--lost);
+  --color-lost-tint: var(--lost-tint);
+  --color-found: var(--found);
+  --color-found-tint: var(--found-tint);
+  --color-sight: var(--sight);
+  --color-sight-tint: var(--sight-tint);
+  --color-ai: var(--ai);
+  --color-ai-tint: var(--ai-tint);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-golos), "Segoe UI", system-ui, sans-serif;
+  --font-serif: var(--font-literata), Georgia, serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-golos), "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* Безопасные зоны для телефонов и Telegram WebApp */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: none;
+}
+
+/* Метки на карте */
+.pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(35, 32, 28, 0.28);
+}
+.pin--lost {
+  background: var(--lost);
+}
+.pin--found {
+  background: var(--found);
+}
+.pin--resolved {
+  background: #9c958b;
+}
+.pin--sighting {
+  background: var(--sight);
+}
+.pin--picker {
+  background: var(--ink);
+}
+
+/* Плитки OpenStreetMap приглушаем под бумажную палитру */
+.leaflet-tile-pane {
+  filter: saturate(0.72) brightness(1.03);
+}
+.leaflet-container {
+  background: #ede8de;
+  font-family: inherit;
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.75) !important;
+}
+/* Поднимаем контролы над кнопками «Потерялся / Нашёл» */
+.leaflet-bottom.leaflet-right {
+  bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

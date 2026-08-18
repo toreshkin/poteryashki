@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&amp;family=Literata:opsz,wght@7..72,600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Golos Text', 'Segoe UI', system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #23201C; }
+    a { color: #1B7F4E; text-decoration: none; }
+    a:hover { color: #14603A; }
+    .ic { flex: none; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</helmet>
+
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #FAF8F5;">
+
+  <div style="position: absolute; left: 0; top: 0; width: 390px; box-sizing: border-box; padding: 14px 14px 10px; background: #FAF8F5; border-bottom: 1px solid #EFEAE2; display: flex; flex-direction: column; gap: 9px; z-index: 2;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 7px;">
+        <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="#23201C" stroke="none"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"></ellipse><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"></ellipse><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"></ellipse><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"></path></svg>
+        <span style="font-family: 'Literata', Georgia, serif; font-size: 15px; font-weight: 600;">Потеряшки</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 3px; height: 34px; padding: 3px; border-radius: 999px; background: #F2EEE8;">
+        <div style="display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 12px; border-radius: 999px; color: #7A736A; font-size: 13px; font-weight: 600;">
+          <svg class="ic" width="15" height="15" viewBox="0 0 24 24"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z"></path><circle cx="12" cy="10" r="2.4"></circle></svg>
+          Карта
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 12px; border-radius: 999px; background: #23201C; color: #FFFFFF; font-size: 13px; font-weight: 600;">
+          <svg class="ic" width="15" height="15" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="5.5" rx="2"></rect><rect x="3.5" y="13.5" width="17" height="5.5" rx="2"></rect></svg>
+          Лента
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+      <div style="flex: 1; display: flex; align-items: center; gap: 9px; height: 46px; padding: 0 14px; border-radius: 15px; background: #FFFFFF; border: 1.5px solid #E9E3DA; color: #23201C;">
+        <svg class="ic" width="19" height="19" viewBox="0 0 24 24" style="color: #7A736A;"><circle cx="11" cy="11" r="6.4"></circle><path d="m15.8 15.8 4.2 4.2"></path></svg>
+        <span style="font-size: 14.5px;">рыжая кошка в Джале</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 15px; background: #F0EBFB; color: #6B4FBB;">
+        <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M11.4 3.4 13 8.4l5 1.6-5 1.6-1.6 5-1.6-5-5-1.6 5-1.6 1.6-5Z"></path><path d="M18.4 15.2l.8 2.4 2.4.8-2.4.8-.8 2.4-.8-2.4-2.4-.8 2.4-.8.8-2.4Z"></path></svg>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 7px;">
+      <div style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; background: #23201C; color: #FFFFFF; font-size: 13px; font-weight: 600;">Все<span style="font-weight: 500; opacity: .7;">24</span></div>
+      <div style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; border: 1.5px solid #E9E3DA; color: #23201C; font-size: 13px; font-weight: 600;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #C8452F;"></span>Потерялись
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; border: 1.5px solid #E9E3DA; color: #23201C; font-size: 13px; font-weight: 600;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #1B7F4E;"></span>Найдены
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 999px; background: #FFFFFF; border: 1.5px solid #E9E3DA; color: #23201C;">
+        <svg class="ic" width="15" height="15" viewBox="0 0 24 24"><path d="M4 8h7M15.5 8H20M4 16h3.5M12 16h8"></path><circle cx="13" cy="8" r="2.2"></circle><circle cx="9.7" cy="16" r="2.2"></circle></svg>
+      </div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; top: 174px; width: 390px; box-sizing: border-box; padding: 12px 14px 0; display: flex; flex-direction: column; gap: 10px;">
+
+    <div style="display: flex; gap: 11px; padding: 10px; border-radius: 18px; background: #FFFFFF; border: 1px solid #EFEAE2; box-shadow: 0 1px 2px rgba(35,32,28,.04);">
+      <div style="position: relative; width: 88px; height: 88px; border-radius: 13px; background: #E4D9C6; flex: none; overflow: hidden;">
+        <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#E4D9C6"></rect><circle cx="44" cy="32" r="18" fill="#CBB89A"></circle><path d="M14 88c4-19 15-28 30-28s26 9 30 28Z" fill="#CBB89A"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 999px; background: #FBEEEA; color: #C8452F; font-size: 11.5px; font-weight: 600;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #C8452F;"></span>Потерялся</span>
+          <span style="font-size: 11.5px; color: #9A9288;">Собака</span>
+        </div>
+        <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -.01em;">Барсик</div>
+        <p class="clamp2" style="margin: 0; font-size: 13px; line-height: 1.4; color: #6E675E;">Рыжий пёс, дворняга, среднего размера. Был в синем ошейнике.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #9A9288;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Парк Панфилова</span>
+          <span style="flex: none;">2 дня назад</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 11px; padding: 10px; border-radius: 18px; background: #FFFFFF; border: 1px solid #EFEAE2; box-shadow: 0 1px 2px rgba(35,32,28,.04);">
+      <div style="position: relative; width: 88px; height: 88px; border-radius: 13px; background: #DCE3E6; flex: none; overflow: hidden;">
+        <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#DCE3E6"></rect><circle cx="44" cy="34" r="17" fill="#BFCCD2"></circle><path d="M18 88c3-17 13-25 26-25s23 8 26 25Z" fill="#BFCCD2"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 999px; background: #E9F3EC; color: #1B7F4E; font-size: 11.5px; font-weight: 600;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #1B7F4E;"></span>Найден</span>
+          <span style="font-size: 11.5px; color: #9A9288;">Кошка</span>
+        </div>
+        <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -.01em;">Белый кот</div>
+        <p class="clamp2" style="margin: 0; font-size: 13px; line-height: 1.4; color: #6E675E;">Ухоженный, явно домашний, идёт на руки. Сидит у подъезда второй день.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #9A9288;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Токтогула 125</span>
+          <span style="flex: none;">сегодня</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 11px; padding: 10px; border-radius: 18px; background: #FFFFFF; border: 1px solid #EFEAE2; box-shadow: 0 1px 2px rgba(35,32,28,.04);">
+      <div style="position: relative; width: 88px; height: 88px; border-radius: 13px; background: #E6E2DA; flex: none; display: flex; align-items: center; justify-content: center; color: #B0A79A;">
+        <svg class="ic" width="30" height="30" viewBox="0 0 24 24" stroke-width="1.4"><rect x="3" y="4.5" width="18" height="15" rx="2.5"></rect><circle cx="8.5" cy="10" r="1.7"></circle><path d="m4 17 5-4.5 4.5 4 3-2.5L20 17"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 999px; background: #FBEEEA; color: #C8452F; font-size: 11.5px; font-weight: 600;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #C8452F;"></span>Потерялась</span>
+          <span style="font-size: 11.5px; color: #9A9288;">Кошка</span>
+        </div>
+        <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -.01em;">Мурка</div>
+        <p class="clamp2" style="margin: 0; font-size: 13px; line-height: 1.4; color: #6E675E;">Серая кошка с белыми лапками, очень пугливая, без ошейника.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #9A9288;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Джал, школа №12</span>
+          <span style="flex: none;">5 дней назад</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 11px; padding: 10px; border-radius: 18px; background: #FFFFFF; border: 1px solid #EFEAE2; box-shadow: 0 1px 2px rgba(35,32,28,.04);">
+      <div style="position: relative; width: 88px; height: 88px; border-radius: 13px; background: #E4DCCB; flex: none; overflow: hidden;">
+        <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#E4DCCB"></rect><circle cx="44" cy="33" r="16" fill="#C9BB9E"></circle><path d="M17 88c3-18 14-26 27-26s24 8 27 26Z" fill="#C9BB9E"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 999px; background: #E9F3EC; color: #1B7F4E; font-size: 11.5px; font-weight: 600;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #1B7F4E;"></span>Найден</span>
+          <span style="font-size: 11.5px; color: #9A9288;">Собака</span>
+        </div>
+        <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -.01em;">Щенок овчарки</div>
+        <p class="clamp2" style="margin: 0; font-size: 13px; line-height: 1.4; color: #6E675E;">Около четырёх месяцев, дружелюбный, без ошейника.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #9A9288;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Ошский рынок</span>
+          <span style="flex: none;">вчера</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 11px; padding: 10px; border-radius: 18px; background: #F7F4EF; border: 1px solid #EFEAE2;">
+      <div style="position: relative; width: 88px; height: 88px; border-radius: 13px; background: #E3DFD7; flex: none; overflow: hidden; opacity: .7;">
+        <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#E3DFD7"></rect><circle cx="44" cy="34" r="16" fill="#CBC5B9"></circle><path d="M18 88c3-17 13-25 26-25s23 8 26 25Z" fill="#CBC5B9"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 999px; background: #ECE8E1; color: #6E675E; font-size: 11.5px; font-weight: 600;">
+            <svg class="ic" width="11" height="11" viewBox="0 0 24 24" stroke-width="2.6"><path d="m5 12.5 4.5 4.5L19 7"></path></svg>
+            Уже дома
+          </span>
+          <span style="font-size: 11.5px; color: #9A9288;">Попугай</span>
+        </div>
+        <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -.01em; color: #6E675E;">Кеша</div>
+        <p class="clamp2" style="margin: 0; font-size: 13px; line-height: 1.4; color: #9A9288;">Зелёный волнистый попугай с жёлтой головой. Вернулся к хозяевам.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #B0A79A;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Восток-5</span>
+          <span style="flex: none;">10 дней назад</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="position: absolute; left: 0; bottom: 0; width: 390px; padding: 22px 14px 18px; box-sizing: border-box; display: flex; gap: 10px; background: linear-gradient(to top, #FAF8F5 62%, rgba(250,248,245,0));">
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 54px; border-radius: 16px; background: #C8452F; color: #FFFFFF; font-size: 15px; font-weight: 600; box-shadow: 0 4px 16px rgba(200,69,47,.3);">
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" stroke-width="1.9"><path d="M12 5.5v13M5.5 12h13"></path></svg>
+      Потерялся
+    </div>
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 54px; border-radius: 16px; background: #1B7F4E; color: #FFFFFF; font-size: 15px; font-weight: 600; box-shadow: 0 4px 16px rgba(27,127,78,.3);">
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" stroke-width="1.9"><path d="M12 5.5v13M5.5 12h13"></path></svg>
+      Нашёл
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
