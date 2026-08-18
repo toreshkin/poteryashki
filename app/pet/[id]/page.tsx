@@ -4,25 +4,24 @@ import { notFound } from "next/navigation";
 import { getServiceClient } from "@/lib/supabase";
 import { ANIMAL_TYPE_LABELS, Report, REPORT_TYPE_LABELS } from "@/lib/types";
 import { SITE_NAME } from "@/lib/config";
+import { PUBLIC_FIELDS_WITH_CONTACTS } from "@/lib/report-fields";
+import { findSimilarNearby, SimilarReport } from "@/lib/similar";
 import { ContactLinks, ReportBadges } from "@/components/PetSheet";
 import ResolveForm from "@/components/ResolveForm";
 import ShareButton from "@/components/ShareButton";
 import Sightings from "@/components/Sightings";
 import SimilarReports from "@/components/SimilarReports";
-import { distanceKm } from "@/lib/geo";
 import { ChevronLeftIcon, ImageIcon, MapPinIcon } from "@/components/Icons";
 
 export const dynamic = "force-dynamic";
-
-const PUBLIC_FIELDS =
-  "id, created_at, report_type, animal_type, name, description, landmarks, lat, lng, photos, contact_phone, contact_telegram, status, event_date";
 
 async function getReport(id: string): Promise<Report | null> {
   try {
     const supabase = getServiceClient();
     const { data } = await supabase
       .from("reports")
-      .select(PUBLIC_FIELDS)
+      // Страница одной заявки — единственное место, где контакты уходят в разметку
+      .select(PUBLIC_FIELDS_WITH_CONTACTS)
       .eq("id", id)
       .neq("status", "hidden")
       .maybeSingle();
@@ -32,26 +31,9 @@ async function getReport(id: string): Promise<Report | null> {
   }
 }
 
-async function getSimilarNearby(
-  report: Report
-): Promise<(Report & { distance: number })[]> {
+async function getSimilarNearby(report: Report): Promise<SimilarReport[]> {
   try {
-    const supabase = getServiceClient();
-    const { data } = await supabase
-      .from("reports")
-      .select(PUBLIC_FIELDS)
-      .eq("status", "active")
-      .eq("report_type", report.report_type === "lost" ? "found" : "lost")
-      .eq("animal_type", report.animal_type)
-      .limit(200);
-    return ((data as Report[]) ?? [])
-      .map((r) => ({
-        ...r,
-        distance: distanceKm(report.lat, report.lng, r.lat, r.lng),
-      }))
-      .filter((r) => r.distance <= 3)
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 5);
+    return await findSimilarNearby(getServiceClient(), report);
   } catch {
     return [];
   }
@@ -106,7 +88,7 @@ export default async function PetPage({ params }: PageProps<"/pet/[id]">) {
                   <img
                     key={url}
                     src={url}
-                    alt=""
+                    alt="Ещё одно фото животного"
                     className="h-16 w-16 shrink-0 rounded-xl border-2 border-white/80 object-cover"
                   />
                 ))}

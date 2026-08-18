@@ -236,7 +236,7 @@ export default function AdminPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={r.photos[0]}
-                  alt=""
+                  alt="Фото из заявки"
                   className="h-14 w-14 shrink-0 rounded-xl object-cover"
                 />
               ) : (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Report } from "@/lib/types";
 import { CalendarIcon, EyeIcon } from "@/components/Icons";
+import LocationPicker from "@/components/LocationPickerLazy";
 
 export interface Sighting {
   id: string;
@@ -18,15 +19,6 @@ const SightingsMap = dynamic(() => import("@/components/SightingsMap"), {
   ssr: false,
   loading: () => (
     <div className="flex h-[190px] items-center justify-center rounded-[18px] border border-line-soft text-ink-3">
-      Загрузка карты…
-    </div>
-  ),
-});
-
-const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-72 items-center justify-center rounded-2xl border border-line text-ink-3">
       Загрузка карты…
     </div>
   ),

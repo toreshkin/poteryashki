@@ -3,14 +3,13 @@ import { getAiProvider } from "@/lib/ai";
 import { AiError, ReportSummary } from "@/lib/ai/types";
 import { getServiceClient } from "@/lib/supabase";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-import { distanceKm } from "@/lib/geo";
 import { Report } from "@/lib/types";
+import { PUBLIC_FIELDS } from "@/lib/report-fields";
+import { findSimilarNearby } from "@/lib/similar";
 
 export const runtime = "nodejs";
 
 const MAX_CANDIDATES = 3;
-const PUBLIC_FIELDS =
-  "id, created_at, report_type, animal_type, name, description, landmarks, lat, lng, photos, contact_phone, contact_telegram, status, event_date";
 
 /** Фото по URL → base64 для отправки в модель. Ошибку глотаем: сравним по тексту. */
 async function fetchPhoto(
@@ -80,22 +79,9 @@ export async function POST(
       return NextResponse.json({ error: "Заявка не найдена" }, { status: 404 });
     }
 
-    const { data: rest } = await supabase
-      .from("reports")
-      .select(PUBLIC_FIELDS)
-      .eq("status", "active")
-      .eq("report_type", report.report_type === "lost" ? "found" : "lost")
-      .eq("animal_type", report.animal_type)
-      .limit(200);
-
-    const candidates = ((rest as Report[]) ?? [])
-      .map((r) => ({
-        report: r,
-        distance: distanceKm(report.lat, report.lng, r.lat, r.lng),
-      }))
-      .filter((c) => c.distance <= 3)
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, MAX_CANDIDATES);
+    const candidates = (
+      await findSimilarNearby(supabase, report, MAX_CANDIDATES)
+    ).map(({ distance, ...r }) => ({ report: r as Report, distance }));
 
     if (candidates.length === 0) {
       return NextResponse.json([]);

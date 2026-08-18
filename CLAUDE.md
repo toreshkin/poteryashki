@@ -21,8 +21,13 @@ npm start        # production-сервер: только так работает
 npm run lint     # eslint
 ```
 
-Тестов в проекте нет. Проверка — сборкой и прогоном сценариев через API
+```bash
+npm test         # vitest: юниты для lib/ (валидация, подпись Telegram, сниффер фото)
+```
+
+Помимо тестов проверка — сборкой и прогоном сценариев через API
 (`curl`/`Invoke-RestMethod` по роутам `/api/...`) на запущенном сервере.
+CI (`.github/workflows/ci.yml`): lint + test + build.
 
 ## Переменные окружения (`.env.local`)
 
@@ -33,6 +38,8 @@ npm run lint     # eslint
 | `ADMIN_PASSWORD` | вход в `/admin` |
 | `AI_PROVIDER` | `off` (по умолчанию) \| `mock` \| `gemini` \| `deepseek` \| `claude` |
 | `GEMINI_API_KEY` / `DEEPSEEK_API_KEY` / `ANTHROPIC_API_KEY` | под выбранного провайдера |
+| `NEXT_PUBLIC_SITE_URL` | публичный адрес — sitemap и ссылки в уведомлениях |
+| `TELEGRAM_BOT_TOKEN` | опционально: «мои заявки», resolve без кода, уведомления |
 
 ## Архитектура
 
@@ -44,13 +51,19 @@ API-роутов и серверных компонентов. Клиентск�
 и заводить его не нужно: любая новая работа с данными — это новый роут в
 `app/api/`.
 
-Публичные выборки всегда перечисляют поля явно (`PUBLIC_FIELDS`), чтобы
-`secret_code_hash` не утёк наружу.
+Публичные выборки всегда перечисляют поля явно (`lib/report-fields.ts`):
+`PUBLIC_FIELDS` — без контактов и `secret_code_hash`. **Контакты не входят в
+массовые выдачи** — только страница `/pet/[id]` и rate-limited
+`GET /api/reports/[id]/contacts` (PetSheet дотягивает их лениво).
+Входные данные всех мутирующих роутов валидируются zod-схемами из
+`lib/validation.ts`; фото проверяются по магическим байтам (`lib/images.ts`).
+Простые роуты обёрнуты в `withErrorHandling` (`lib/api-helpers.ts`).
 
 ### Схема БД применяется вручную
 
 `supabase/*.sql` — не миграции, а скрипты для SQL Editor: `schema.sql`
-(reports, complaints, bucket), `sightings.sql`, `ai.sql`, `seed.sql`.
+(reports, complaints, bucket), `sightings.sql`, `ai.sql`, `telegram.sql`
+(tg-колонки), `geo.sql` (earthdistance + RPC `similar_reports`), `seed.sql`.
 Инструмента миграций нет. Добавляя таблицу, добавьте новый `.sql` и скажите
 пользователю выполнить его — код должен переживать отсутствие таблицы без
 падения (пример: кэш в `app/api/reports/[id]/match/route.ts` логирует ошибку
@@ -130,6 +143,26 @@ production**. Стратегия: оболочка и статика из кэш
 `<html>` стоит намеренно — скрипт дописывает свои CSS-переменные до гидратации.
 `initTelegram()` (`lib/telegram.ts`) разворачивает окно и подставляет
 `@username` в контакты.
+
+Телеграм-слой опционален (паттерн как у ИИ): без `TELEGRAM_BOT_TOKEN`
+`verifyInitData()` (`lib/telegram-auth.ts`) возвращает `null`, `/api/telegram/status`
+отдаёт `enabled: false`, UI прячет «Мои заявки» (`useTelegramStatus`). С токеном:
+подпись `initData` проверяется на сервере (HMAC), заявка из Mini App привязывается
+к `tg_user_id`/`tg_chat_id` (`supabase/telegram.sql`), работают `/my`,
+resolve без кода и уведомления через `lib/telegram-bot.ts` (о «видел», скрытии
+по жалобам, находке рядом). `initDataUnsafe` серверу не доверяем никогда.
+
+### Похожие рядом и пагинация
+
+«Похожие рядом» — только через `findSimilarNearby()` (`lib/similar.ts`):
+RPC `similar_reports` с гео-индексом, при невыполненном `geo.sql` — JS-fallback.
+`GET /api/reports` принимает `?limit=` (до 500) и `?before=` (курсор
+`created_at`). Общая логика загрузки/фильтров карты и ленты — хук
+`useReports` (`components/useReports.ts`).
+
+Миниатюры фото генерирует клиент (`browser-image-compression`) и сервер кладёт
+их рядом с оригиналом как `<uuid>_thumb.webp`; отображение — `PhotoThumb`
+с fallback на оригинал (у старых фото миниатюр нет).
 
 ## Прочее
 

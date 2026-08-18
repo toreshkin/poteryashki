@@ -8,6 +8,7 @@ interface TelegramWebApp {
   ready: () => void;
   expand: () => void;
   colorScheme: "light" | "dark";
+  initData?: string;
   initDataUnsafe?: {
     user?: { username?: string; first_name?: string };
   };
@@ -18,6 +19,14 @@ export function getTelegramWebApp(): TelegramWebApp | null {
   const tg = (window as unknown as { Telegram?: { WebApp?: TelegramWebApp } })
     .Telegram?.WebApp;
   return tg ?? null;
+}
+
+/**
+ * Сырая строка initData для передачи на сервер: подпись проверяется
+ * в lib/telegram-auth.ts, данным из initDataUnsafe сервер не доверяет.
+ */
+export function getInitData(): string | null {
+  return getTelegramWebApp()?.initData || null;
 }
 
 /** Инициализация при открытии внутри Telegram; возвращает @username, если есть. */

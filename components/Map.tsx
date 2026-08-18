@@ -1,9 +1,11 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 import { CITY_CENTER, CITY_ZOOM } from "@/lib/config";
 import { Report } from "@/lib/types";
 import { animalIconMarkup, CHECK_MARKUP } from "@/components/Icons";
@@ -26,6 +28,45 @@ function markerIcon(report: Report): L.DivIcon {
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
+}
+
+/**
+ * Маркеры через кластер-группу: при сотнях заявок отдельные пины
+ * превращают карту в кашу и тормозят на телефоне.
+ */
+function ClusterMarkers({
+  reports,
+  onSelect,
+}: {
+  reports: Report[];
+  onSelect: (report: Report) => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    const group = L.markerClusterGroup({
+      maxClusterRadius: 48,
+      showCoverageOnHover: false,
+      iconCreateFunction: (cluster) =>
+        L.divIcon({
+          className: "",
+          html: `<div class="pin pin--cluster" style="width:44px;height:44px">${cluster.getChildCount()}</div>`,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+        }),
+    });
+    for (const report of reports) {
+      const marker = L.marker([report.lat, report.lng], {
+        icon: markerIcon(report),
+      });
+      marker.on("click", () => onSelect(report));
+      group.addLayer(marker);
+    }
+    map.addLayer(group);
+    return () => {
+      map.removeLayer(group);
+    };
+  }, [map, reports, onSelect]);
+  return null;
 }
 
 /** Кнопка «моё местоположение» — управляет картой изнутри. */
@@ -74,14 +115,7 @@ export default function Map({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <LocateControl />
-      {reports.map((report) => (
-        <Marker
-          key={report.id}
-          position={[report.lat, report.lng]}
-          icon={markerIcon(report)}
-          eventHandlers={{ click: () => onSelect(report) }}
-        />
-      ))}
+      <ClusterMarkers reports={reports} onSelect={onSelect} />
     </MapContainer>
   );
 }

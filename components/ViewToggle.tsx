@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ListIcon, MapPinIcon } from "@/components/Icons";
+import { ListIcon, MapPinIcon, PawIcon } from "@/components/Icons";
+import { useTelegramStatus } from "@/components/useTelegramStatus";
 
 export default function ViewToggle({ floating = false }: { floating?: boolean }) {
   const pathname = usePathname();
   const isFeed = pathname === "/feed";
+  const isMy = pathname === "/my";
+  const telegram = useTelegramStatus();
   const active = "bg-ink text-white";
   const idle = "text-ink-2";
 
@@ -19,7 +22,7 @@ export default function ViewToggle({ floating = false }: { floating?: boolean })
       <Link
         href="/"
         className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
-          isFeed ? idle : active
+          isFeed || isMy ? idle : active
         }`}
       >
         <MapPinIcon size={15} />
@@ -34,6 +37,17 @@ export default function ViewToggle({ floating = false }: { floating?: boolean })
         <ListIcon size={15} />
         Лента
       </Link>
+      {telegram.available && (
+        <Link
+          href="/my"
+          className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
+            isMy ? active : idle
+          }`}
+        >
+          <PawIcon size={15} />
+          Мои
+        </Link>
+      )}
     </div>
   );
 }

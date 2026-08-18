@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Filters, { DEFAULT_FILTERS, FilterState } from "@/components/Filters";
+import Filters from "@/components/Filters";
 import ViewToggle from "@/components/ViewToggle";
 import EntryButtons from "@/components/EntryButtons";
 import StatusBadge from "@/components/StatusBadge";
-import { ANIMAL_TYPE_LABELS, Report } from "@/lib/types";
+import { ANIMAL_TYPE_LABELS } from "@/lib/types";
 import { SITE_NAME } from "@/lib/config";
 import { initTelegram } from "@/lib/telegram";
-import { matchesFilters, matchesQuery, timeAgo } from "@/lib/filter";
+import { timeAgo } from "@/lib/filter";
 import { useAiStatus } from "@/components/useAiStatus";
+import { useReports } from "@/components/useReports";
+import PhotoThumb from "@/components/PhotoThumb";
 import {
   CloseIcon,
   ImageIcon,
@@ -20,43 +22,26 @@ import {
 } from "@/components/Icons";
 
 export default function FeedView() {
-  const [reports, setReports] = useState<Report[]>([]);
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    visible,
+    counts,
+    filters,
+    setFilters,
+    query,
+    setQuery,
+    loading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    error,
+  } = useReports(100);
   const ai = useAiStatus();
   const [aiBusy, setAiBusy] = useState(false);
   const [aiNote, setAiNote] = useState<string | null>(null);
 
   useEffect(() => {
     initTelegram();
-    fetch("/api/reports")
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data: Report[]) => setReports(data))
-      .catch(() => setError("Не удалось загрузить заявки"))
-      .finally(() => setLoading(false));
   }, []);
-
-  const visible = useMemo(
-    () =>
-      reports.filter(
-        (r) => matchesFilters(r, filters) && matchesQuery(r, query)
-      ),
-    [reports, filters, query]
-  );
-
-  const counts = useMemo(() => {
-    const active = reports.filter((r) => r.status !== "resolved");
-    return {
-      all: active.length,
-      lost: active.filter((r) => r.report_type === "lost").length,
-      found: active.filter((r) => r.report_type === "found").length,
-    };
-  }, [reports]);
 
   async function aiSearch() {
     const text = query.trim();
@@ -170,11 +155,10 @@ export default function FeedView() {
             }`}
           >
             {r.photos.length > 0 ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <PhotoThumb
                 src={r.photos[0]}
-                alt=""
-                className={`h-22 w-22 shrink-0 rounded-[13px] object-cover ${
+                alt={`Фото: ${r.name ?? ANIMAL_TYPE_LABELS[r.animal_type]}`}
+                className={`shrink-0 rounded-[13px] object-cover ${
                   r.status === "resolved" ? "opacity-70" : ""
                 }`}
                 style={{ width: 88, height: 88 }}
@@ -212,6 +196,16 @@ export default function FeedView() {
             </div>
           </Link>
         ))}
+
+        {hasMore && !loading && !error && (
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="w-full rounded-[15px] border-[1.5px] border-line bg-surface py-3.5 text-sm font-semibold text-ink-2 disabled:opacity-50"
+          >
+            {loadingMore ? "Загружаем…" : "Показать ещё"}
+          </button>
+        )}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-lg">

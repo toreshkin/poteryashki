@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import Filters, { DEFAULT_FILTERS, FilterState } from "@/components/Filters";
+import Filters from "@/components/Filters";
 import PetSheet from "@/components/PetSheet";
 import ViewToggle from "@/components/ViewToggle";
 import EntryButtons from "@/components/EntryButtons";
@@ -10,7 +10,7 @@ import { PawIcon, SearchIcon } from "@/components/Icons";
 import { Report } from "@/lib/types";
 import { initTelegram } from "@/lib/telegram";
 import { SITE_NAME } from "@/lib/config";
-import { matchesFilters, matchesQuery } from "@/lib/filter";
+import { useReports } from "@/components/useReports";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -22,44 +22,14 @@ const Map = dynamic(() => import("@/components/Map"), {
 });
 
 export default function MapView() {
-  const [reports, setReports] = useState<Report[]>([]);
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
-  const [query, setQuery] = useState("");
+  // Карте нужна вся картина сразу — берём максимум одной страницей
+  const { visible, counts, filters, setFilters, query, setQuery, error } =
+    useReports(500);
   const [selected, setSelected] = useState<Report | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     initTelegram();
   }, []);
-
-  useEffect(() => {
-    fetch("/api/reports")
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data: Report[]) => setReports(data))
-      .catch(() =>
-        setError("Не удалось загрузить заявки. Проверьте настройки Supabase.")
-      );
-  }, []);
-
-  const visible = useMemo(
-    () =>
-      reports.filter(
-        (r) => matchesFilters(r, filters) && matchesQuery(r, query)
-      ),
-    [reports, filters, query]
-  );
-
-  const counts = useMemo(() => {
-    const active = reports.filter((r) => r.status !== "resolved");
-    return {
-      all: active.length,
-      lost: active.filter((r) => r.report_type === "lost").length,
-      found: active.filter((r) => r.report_type === "found").length,
-    };
-  }, [reports]);
 
   return (
     <div className="relative h-dvh w-full overflow-hidden">

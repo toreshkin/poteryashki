@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ANIMAL_TYPE_LABELS, AnimalType, ReportType } from "@/lib/types";
 import { CloseIcon, FiltersIcon } from "@/components/Icons";
+import { useDialog } from "@/components/useDialog";
 
 export interface FilterState {
   type: ReportType | "all";
@@ -64,6 +65,7 @@ export default function Filters({
   floating?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const dialogRef = useDialog<HTMLDivElement>(open, () => setOpen(false));
   const extra = extraFilterCount(value);
 
   return (
@@ -124,7 +126,14 @@ export default function Filters({
             className="fixed inset-0 z-[1200] bg-ink/25"
             onClick={() => setOpen(false)}
           />
-          <div className="fixed inset-x-0 bottom-0 z-[1201] rounded-t-[26px] bg-surface p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(35,32,28,.18)]">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Фильтры"
+            tabIndex={-1}
+            className="fixed inset-x-0 bottom-0 z-[1201] rounded-t-[26px] bg-surface p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(35,32,28,.18)] outline-none"
+          >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-serif text-xl font-semibold tracking-tight">
                 Фильтры

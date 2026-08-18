@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ANIMAL_TYPE_LABELS,
@@ -10,6 +10,8 @@ import {
 } from "@/lib/types";
 import StatusBadge from "@/components/StatusBadge";
 import ShareButton from "@/components/ShareButton";
+import PhotoThumb from "@/components/PhotoThumb";
+import { useDialog } from "@/components/useDialog";
 import {
   ChevronRightIcon,
   CloseIcon,
@@ -19,6 +21,10 @@ import {
   SendIcon,
 } from "@/components/Icons";
 
+// Тот же формат, что в lib/validation.ts: ссылку t.me строим только
+// из безопасного значения, иначе в href уедет произвольная строка.
+const TELEGRAM_USERNAME_REGEX = /^@?[A-Za-z0-9_]{5,32}$/;
+
 export function ContactLinks({
   report,
   compact = false,
@@ -27,6 +33,11 @@ export function ContactLinks({
   compact?: boolean;
 }) {
   const phone = report.contact_phone;
+  const telegram =
+    report.contact_telegram &&
+    TELEGRAM_USERNAME_REGEX.test(report.contact_telegram)
+      ? report.contact_telegram.replace(/^@/, "")
+      : null;
   return (
     <>
       {phone && (
@@ -39,9 +50,9 @@ export function ContactLinks({
           Позвонить
         </a>
       )}
-      {report.contact_telegram && (
+      {telegram && (
         <a
-          href={`https://t.me/${report.contact_telegram.replace(/^@/, "")}`}
+          href={`https://t.me/${encodeURIComponent(telegram)}`}
           target="_blank"
           rel="noopener noreferrer"
           className={`flex items-center justify-center gap-2 rounded-[15px] border-[1.5px] border-line bg-surface px-4 text-[14.5px] font-semibold ${
@@ -145,6 +156,8 @@ function ComplaintForm({
   );
 }
 
+type Contacts = Pick<Report, "contact_phone" | "contact_telegram">;
+
 export default function PetSheet({
   report,
   onClose,
@@ -153,7 +166,57 @@ export default function PetSheet({
   onClose: () => void;
 }) {
   const [complaining, setComplaining] = useState(false);
+  // В массовой выдаче /api/reports контактов нет — дотягиваем их
+  // по одной заявке при открытии шторки.
+  const [contactsById, setContactsById] = useState<Record<string, Contacts>>({});
+  const [contactsErrorById, setContactsErrorById] = useState<
+    Record<string, string>
+  >({});
+  const dialogRef = useDialog<HTMLDivElement>(report != null, onClose);
+  const reportId = report?.id;
+  const needContacts =
+    report != null &&
+    report.contact_phone === undefined &&
+    report.contact_telegram === undefined;
+
+  useEffect(() => {
+    if (!reportId || !needContacts) return;
+    let cancelled = false;
+    fetch(`/api/reports/${reportId}/contacts`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (res.ok && data) {
+          setContactsById((prev) => ({ ...prev, [reportId]: data }));
+        } else {
+          setContactsErrorById((prev) => ({
+            ...prev,
+            [reportId]:
+              res.status === 429
+                ? "Слишком много запросов, попробуйте позже"
+                : "Не удалось загрузить контакты",
+          }));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setContactsErrorById((prev) => ({
+            ...prev,
+            [reportId]: "Не удалось загрузить контакты",
+          }));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reportId, needContacts]);
+
   if (!report) return null;
+
+  const contacts = contactsById[report.id];
+  const contactsError = contactsErrorById[report.id];
+  const reportWithContacts = contacts ? { ...report, ...contacts } : report;
+  const contactsLoading = needContacts && !contacts && !contactsError;
 
   const title =
     report.name ??
@@ -162,7 +225,14 @@ export default function PetSheet({
   return (
     <>
       <div className="fixed inset-0 z-[1000] bg-ink/25" onClick={onClose} />
-      <div className="fixed inset-x-0 bottom-0 z-[1001] max-h-[82dvh] overflow-y-auto rounded-t-[26px] bg-surface px-[18px] pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-8px_32px_rgba(35,32,28,.18)]">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        className="fixed inset-x-0 bottom-0 z-[1001] max-h-[82dvh] overflow-y-auto rounded-t-[26px] bg-surface px-[18px] pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-8px_32px_rgba(35,32,28,.18)] outline-none"
+      >
         <div className="mx-auto mb-3.5 h-1 w-[42px] rounded-full bg-line" />
 
         <div className="space-y-3.5">
@@ -185,8 +255,7 @@ export default function PetSheet({
           {report.photos.length > 0 ? (
             <div className="flex gap-2.5 overflow-x-auto [scrollbar-width:none]">
               {report.photos.map((url) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <PhotoThumb
                   key={url}
                   src={url}
                   alt="Фото животного"
@@ -212,7 +281,23 @@ export default function PetSheet({
           )}
 
           <div className="flex gap-2.5">
-            <ContactLinks report={report} compact />
+            {contactsLoading ? (
+              <div
+                className="flex flex-1 items-center justify-center rounded-[15px] bg-muted-tint text-[14px] text-ink-3"
+                style={{ height: 52 }}
+              >
+                Загрузка контактов…
+              </div>
+            ) : contactsError ? (
+              <div
+                className="flex flex-1 items-center justify-center rounded-[15px] bg-muted-tint px-4 text-center text-[13.5px] text-ink-3"
+                style={{ height: 52 }}
+              >
+                {contactsError}
+              </div>
+            ) : (
+              <ContactLinks report={reportWithContacts} compact />
+            )}
             <ShareButton report={report} iconOnly />
           </div>
 

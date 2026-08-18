@@ -6,7 +6,8 @@
   --surface: #ffffff;
   --ink: #23201c;
   --ink-2: #6e675e;
-  --ink-3: #9a9288;
+  /* Не светлее: подписи и плейсхолдеры должны держать контраст AA (≥4.5:1) */
+  --ink-3: #756f65;
   --line: #e9e3da;
   --line-soft: #efeae2;
   --muted-tint: #f2eee8;
@@ -79,6 +80,19 @@ body {
 }
 .pin--picker {
   background: var(--ink);
+}
+.pin--cluster {
+  background: var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+  font-family: var(--font-sans, sans-serif);
+}
+
+/* Видимый фокус для клавиатуры: компоненты гасят outline у инпутов,
+   поэтому кольцо рисуем только на :focus-visible */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 /* Плитки OpenStreetMap приглушаем под бумажную палитру */

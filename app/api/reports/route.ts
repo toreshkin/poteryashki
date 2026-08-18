@@ -2,29 +2,75 @@ import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase";
 import { getClientIp, rateLimit, sha256 } from "@/lib/rate-limit";
 import { MAX_PHOTOS } from "@/lib/config";
+import { PUBLIC_FIELDS } from "@/lib/report-fields";
+import { sniffImageType, IMAGE_EXTENSIONS } from "@/lib/images";
+import { reportInputSchema, firstIssue } from "@/lib/validation";
+import { withErrorHandling } from "@/lib/api-helpers";
+import { verifyInitData } from "@/lib/telegram-auth";
+import { sendTelegramMessage, reportUrl } from "@/lib/telegram-bot";
+import { distanceKm } from "@/lib/geo";
+import { ANIMAL_TYPE_LABELS, AnimalType } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-const PUBLIC_FIELDS =
-  "id, created_at, report_type, animal_type, name, description, landmarks, lat, lng, photos, contact_phone, contact_telegram, status, event_date";
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
-export async function GET() {
-  try {
-    const supabase = getServiceClient();
-    const { data, error } = await supabase
-      .from("reports")
-      .select(PUBLIC_FIELDS)
-      .neq("status", "hidden")
-      .order("created_at", { ascending: false })
-      .limit(500);
-    if (error) throw error;
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Не удалось загрузить заявки" },
-      { status: 500 }
-    );
+// ?limit= (до 500) и ?before= (курсор created_at последней записи страницы):
+// лента подгружает частями, карта берёт сразу много.
+export const GET = withErrorHandling(async (req: Request) => {
+  const url = new URL(req.url);
+  const limitParam = Number(url.searchParams.get("limit"));
+  const limit = Number.isFinite(limitParam)
+    ? Math.min(Math.max(Math.trunc(limitParam), 1), 500)
+    : 100;
+  const before = url.searchParams.get("before");
+
+  const supabase = getServiceClient();
+  let query = supabase
+    .from("reports")
+    .select(PUBLIC_FIELDS)
+    .neq("status", "hidden")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (before) query = query.lt("created_at", before);
+  const { data, error } = await query;
+  if (error) throw error;
+  return NextResponse.json(data);
+}, "Не удалось загрузить заявки");
+
+const NOTIFY_RADIUS_KM = 3;
+
+/** Авторам активных lost-заявок того же вида в радиусе — сообщение о находке. */
+async function notifyNearbyLostAuthors(
+  supabase: ReturnType<typeof getServiceClient>,
+  animalType: AnimalType,
+  lat: number,
+  lng: number,
+  foundReportId: string
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("reports")
+    .select("id, lat, lng, tg_chat_id")
+    .eq("status", "active")
+    .eq("report_type", "lost")
+    .eq("animal_type", animalType)
+    .not("tg_chat_id", "is", null)
+    .limit(200);
+  // Колонки tg_* может не быть, если не выполнен supabase/telegram.sql
+  if (error || !data) return;
+
+  const url = reportUrl(foundReportId);
+  const label = ANIMAL_TYPE_LABELS[animalType].toLowerCase();
+  const text = [
+    `Рядом с местом пропажи нашли животное (${label}) — возможно, это ваш питомец.`,
+    url ?? "Откройте «Потеряшки», чтобы посмотреть заявку.",
+  ].join("\n");
+
+  const nearby = data.filter(
+    (r) => distanceKm(lat, lng, r.lat, r.lng) <= NOTIFY_RADIUS_KM
+  );
+  for (const r of nearby) {
+    await sendTelegramMessage(r.tg_chat_id, text);
   }
 }
 
@@ -36,7 +82,7 @@ function generateSecretCode(): string {
   ).join("");
 }
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const ip = getClientIp(req);
   if (!rateLimit(`report:${ip}`, 5, 60 * 60 * 1000)) {
     return NextResponse.json(
@@ -45,7 +91,7 @@ export async function POST(req: Request) {
     );
   }
 
-  try {
+  {
     const form = await req.formData();
 
     // Honeypot: скрытое поле, которое заполняют только боты
@@ -53,87 +99,132 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Ошибка" }, { status: 400 });
     }
 
-    const reportType = String(form.get("report_type") ?? "");
-    const animalType = String(form.get("animal_type") ?? "");
-    const description = String(form.get("description") ?? "").trim();
-    const lat = Number(form.get("lat"));
-    const lng = Number(form.get("lng"));
-    const contactPhone = String(form.get("contact_phone") ?? "").trim();
-    const contactTelegram = String(form.get("contact_telegram") ?? "").trim();
-
-    if (!["lost", "found"].includes(reportType))
-      return NextResponse.json({ error: "Неверный тип заявки" }, { status: 400 });
-    if (!["dog", "cat", "other"].includes(animalType))
-      return NextResponse.json({ error: "Неверный вид животного" }, { status: 400 });
-    if (description.length < 10)
-      return NextResponse.json(
-        { error: "Опишите животное подробнее (минимум 10 символов)" },
-        { status: 400 }
-      );
-    if (!Number.isFinite(lat) || !Number.isFinite(lng))
-      return NextResponse.json(
-        { error: "Укажите место на карте" },
-        { status: 400 }
-      );
-    if (!contactPhone && !contactTelegram)
-      return NextResponse.json(
-        { error: "Укажите телефон или Telegram" },
-        { status: 400 }
-      );
+    const parsed = reportInputSchema.safeParse({
+      report_type: String(form.get("report_type") ?? ""),
+      animal_type: String(form.get("animal_type") ?? ""),
+      name: String(form.get("name") ?? ""),
+      description: String(form.get("description") ?? ""),
+      landmarks: String(form.get("landmarks") ?? ""),
+      lat: Number(form.get("lat")),
+      lng: Number(form.get("lng")),
+      contact_phone: String(form.get("contact_phone") ?? ""),
+      contact_telegram: String(form.get("contact_telegram") ?? ""),
+      event_date: String(form.get("event_date") ?? ""),
+    });
+    if (!parsed.success) {
+      return NextResponse.json({ error: firstIssue(parsed) }, { status: 400 });
+    }
+    const input = parsed.data;
 
     const supabase = getServiceClient();
     const secretCode = generateSecretCode();
 
-    // Загрузка фото в Storage
+    // Загрузка фото в Storage. Тип определяем по содержимому файла:
+    // file.type приходит от клиента, а бакет публичный.
     const photoFiles = form
       .getAll("photos")
       .filter((f): f is File => f instanceof File && f.size > 0)
       .slice(0, MAX_PHOTOS);
+    // Миниатюры генерирует клиент; пары строятся по индексу
+    const thumbFiles = form
+      .getAll("thumbs")
+      .filter((f): f is File => f instanceof File && f.size > 0)
+      .slice(0, MAX_PHOTOS);
     const photoUrls: string[] = [];
-    for (const file of photoFiles) {
-      if (file.size > 5 * 1024 * 1024) continue;
-      const path = `${crypto.randomUUID()}.jpg`;
+    for (const [index, file] of photoFiles.entries()) {
+      if (file.size > MAX_PHOTO_BYTES) {
+        return NextResponse.json(
+          { error: "Фото не подходит (JPEG/PNG/WebP до 5 МБ)" },
+          { status: 400 }
+        );
+      }
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const mime = sniffImageType(bytes);
+      if (!mime) {
+        return NextResponse.json(
+          { error: "Фото не подходит (JPEG/PNG/WebP до 5 МБ)" },
+          { status: 400 }
+        );
+      }
+      const uuid = crypto.randomUUID();
+      const path = `${uuid}.${IMAGE_EXTENSIONS[mime]}`;
       const { error: uploadError } = await supabase.storage
         .from("pet-photos")
-        .upload(path, file, { contentType: file.type || "image/jpeg" });
+        .upload(path, bytes, { contentType: mime });
       if (uploadError) throw uploadError;
       photoUrls.push(
         supabase.storage.from("pet-photos").getPublicUrl(path).data.publicUrl
       );
+
+      // Миниатюра опциональна: при любой проблеме клиент откатится на оригинал
+      const thumb = thumbFiles[index];
+      if (thumb && thumb.size <= 512 * 1024) {
+        const thumbBytes = new Uint8Array(await thumb.arrayBuffer());
+        if (sniffImageType(thumbBytes) === "image/webp") {
+          const { error: thumbError } = await supabase.storage
+            .from("pet-photos")
+            .upload(`${uuid}_thumb.webp`, thumbBytes, {
+              contentType: "image/webp",
+            });
+          if (thumbError) {
+            console.error("Не удалось сохранить миниатюру:", thumbError.message);
+          }
+        }
+      }
     }
 
-    const name = String(form.get("name") ?? "").trim();
-    const landmarks = String(form.get("landmarks") ?? "").trim();
-    const eventDate = String(form.get("event_date") ?? "");
+    // Автор из Telegram Mini App: подпись initData проверяется на сервере,
+    // без валидной подписи заявка просто остаётся без привязки.
+    const tg = verifyInitData(String(form.get("init_data") ?? "") || null);
 
-    const { data, error } = await supabase
-      .from("reports")
-      .insert({
-        report_type: reportType,
-        animal_type: animalType,
-        name: name || null,
-        description,
-        landmarks: landmarks || null,
-        lat,
-        lng,
-        photos: photoUrls,
-        contact_phone: contactPhone || null,
-        contact_telegram: contactTelegram || null,
-        secret_code_hash: sha256(secretCode),
-        event_date: /^\d{4}-\d{2}-\d{2}$/.test(eventDate)
-          ? eventDate
-          : new Date().toISOString().slice(0, 10),
-      })
-      .select("id")
-      .single();
-    if (error) throw error;
+    const row = {
+      report_type: input.report_type,
+      animal_type: input.animal_type,
+      name: input.name || null,
+      description: input.description,
+      landmarks: input.landmarks || null,
+      lat: input.lat,
+      lng: input.lng,
+      photos: photoUrls,
+      contact_phone: input.contact_phone || null,
+      contact_telegram: input.contact_telegram || null,
+      secret_code_hash: sha256(secretCode),
+      event_date: input.event_date || new Date().toISOString().slice(0, 10),
+    };
 
-    return NextResponse.json({ id: data.id, secret_code: secretCode });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Не удалось создать заявку" },
-      { status: 500 }
-    );
+    let inserted = tg
+      ? await supabase
+          .from("reports")
+          .insert({ ...row, tg_user_id: tg.userId, tg_chat_id: tg.chatId })
+          .select("id")
+          .single()
+      : null;
+    if (inserted?.error) {
+      // Частая причина — не выполнен supabase/telegram.sql: повторяем без tg-полей
+      console.error(
+        "Не удалось сохранить tg-поля (выполнен ли supabase/telegram.sql?):",
+        inserted.error.message
+      );
+      inserted = null;
+    }
+    if (!inserted) {
+      inserted = await supabase.from("reports").insert(row).select("id").single();
+    }
+    if (inserted.error) throw inserted.error;
+    const reportId = inserted.data.id as string;
+
+    // Найдено животное — сообщаем авторам активных «потеряшек» того же вида рядом.
+    // Ошибки не должны ломать ответ: заявка уже создана.
+    if (input.report_type === "found") {
+      await notifyNearbyLostAuthors(
+        supabase,
+        input.animal_type,
+        input.lat,
+        input.lng,
+        reportId
+      ).catch((err) => console.error("Уведомление о находке:", err));
+    }
+
+    return NextResponse.json({ id: reportId, secret_code: secretCode });
   }
-}
+}, "Не удалось создать заявку");

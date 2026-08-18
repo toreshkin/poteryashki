@@ -13,8 +13,10 @@ export interface Report {
   lat: number;
   lng: number;
   photos: string[];
-  contact_phone: string | null;
-  contact_telegram: string | null;
+  // Контактов нет в массовых выдачах — только на /pet/[id]
+  // и в /api/reports/[id]/contacts (см. lib/report-fields.ts).
+  contact_phone?: string | null;
+  contact_telegram?: string | null;
   status: ReportStatus;
   event_date: string;
 }

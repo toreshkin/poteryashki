@@ -2,35 +2,34 @@ import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase";
 import { getClientIp, rateLimit, sha256 } from "@/lib/rate-limit";
 import { AUTO_HIDE_COMPLAINTS } from "@/lib/config";
+import { complaintInputSchema, firstIssue } from "@/lib/validation";
+import { sendTelegramMessage } from "@/lib/telegram-bot";
+import { withErrorHandling } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
-const VALID_REASONS = ["spam", "fraud", "wrong", "other"];
-
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const ip = getClientIp(req);
-  if (!rateLimit(`complain:${ip}`, 10, 60 * 60 * 1000)) {
-    return NextResponse.json(
-      { error: "Слишком много жалоб. Попробуйте позже." },
-      { status: 429 }
-    );
-  }
-
-  try {
-    const body = (await req.json()) as { reason?: string; comment?: string };
-    if (!body.reason || !VALID_REASONS.includes(body.reason)) {
-      return NextResponse.json({ error: "Укажите причину" }, { status: 400 });
+export const POST = withErrorHandling(
+  async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
+    const { id } = await params;
+    const ip = getClientIp(req);
+    if (!rateLimit(`complain:${ip}`, 10, 60 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: "Слишком много жалоб. Попробуйте позже." },
+        { status: 429 }
+      );
     }
+
+    const parsed = complaintInputSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: firstIssue(parsed) }, { status: 400 });
+    }
+    const body = parsed.data;
 
     const supabase = getServiceClient();
     const { error } = await supabase.from("complaints").insert({
       report_id: id,
       reason: body.reason,
-      comment: body.comment?.slice(0, 500) ?? null,
+      comment: body.comment || null,
       ip_hash: sha256(`${ip}:poteryashki`),
     });
     if (error) {
@@ -50,16 +49,33 @@ export async function POST(
       .select("id", { count: "exact", head: true })
       .eq("report_id", id);
     if ((count ?? 0) >= AUTO_HIDE_COMPLAINTS) {
-      await supabase
+      const { data: hidden } = await supabase
         .from("reports")
         .update({ status: "hidden" })
         .eq("id", id)
-        .eq("status", "active");
+        .eq("status", "active")
+        .select("id");
+
+      // Автора стоит предупредить: без этого заявка тихо исчезает с карты.
+      if (hidden && hidden.length > 0) {
+        try {
+          const { data: author } = await supabase
+            .from("reports")
+            .select("tg_chat_id")
+            .eq("id", id)
+            .maybeSingle();
+          if (author?.tg_chat_id) {
+            await sendTelegramMessage(
+              author.tg_chat_id,
+              "Ваша заявка в «Потеряшках» скрыта из-за жалоб. Если это ошибка, напишите модератору."
+            );
+          }
+        } catch (notifyErr) {
+          console.error("Уведомление о скрытии:", notifyErr);
+        }
+      }
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
   }
-}
+);

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import imageCompression from "browser-image-compression";
 import { ANIMAL_TYPE_LABELS, AnimalType, ReportType } from "@/lib/types";
 import { MAX_PHOTOS } from "@/lib/config";
-import { initTelegram } from "@/lib/telegram";
+import { getInitData, initTelegram } from "@/lib/telegram";
 import AiButton from "@/components/AiButton";
+import LocationPicker from "@/components/LocationPickerLazy";
 import { useAiStatus } from "@/components/useAiStatus";
 import {
   AnimalIcon,
@@ -19,15 +19,6 @@ import {
   CloseIcon,
   SparkleIcon,
 } from "@/components/Icons";
-
-const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-72 items-center justify-center rounded-2xl border border-line text-ink-3">
-      Загрузка карты…
-    </div>
-  ),
-});
 
 const STEPS = ["Фото", "Приметы", "Где", "Контакты"] as const;
 
@@ -75,6 +66,8 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
   })();
   const [eventDate, setEventDate] = useState(today);
   const [photos, setPhotos] = useState<File[]>([]);
+  // Миниатюры для ленты/карты генерируем здесь же, при добавлении фото
+  const [thumbs, setThumbs] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [phone, setPhone] = useState("");
@@ -102,6 +95,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
   async function addPhotos(files: FileList | null) {
     if (!files) return;
     const compressed: File[] = [];
+    const compressedThumbs: File[] = [];
     for (const file of Array.from(files).slice(0, MAX_PHOTOS - photos.length)) {
       compressed.push(
         await imageCompression(file, {
@@ -110,13 +104,23 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
           useWebWorker: true,
         })
       );
+      compressedThumbs.push(
+        await imageCompression(file, {
+          maxSizeMB: 0.05,
+          maxWidthOrHeight: 320,
+          useWebWorker: true,
+          fileType: "image/webp",
+        })
+      );
     }
     setPhotos((prev) => [...prev, ...compressed]);
+    setThumbs((prev) => [...prev, ...compressedThumbs]);
     setPreviews((prev) => [...prev, ...compressed.map((f) => URL.createObjectURL(f))]);
   }
 
   function removePhoto(index: number) {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setThumbs((prev) => prev.filter((_, i) => i !== index));
     setPreviews((prev) => {
       URL.revokeObjectURL(prev[index]);
       return prev.filter((_, i) => i !== index);
@@ -184,7 +188,11 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
     form.set("lng", String(position![1]));
     form.set("contact_phone", phone);
     form.set("contact_telegram", telegram);
+    // Подпись Telegram: сервер проверит её и привяжет заявку к автору
+    const initData = getInitData();
+    if (initData) form.set("init_data", initData);
     for (const photo of photos) form.append("photos", photo, "photo.jpg");
+    for (const thumb of thumbs) form.append("thumbs", thumb, "thumb.webp");
 
     try {
       const res = await fetch("/api/reports", { method: "POST", body: form });
@@ -277,7 +285,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={src}
-                  alt=""
+                  alt="Предпросмотр добавленного фото"
                   className="h-28 w-28 rounded-2xl object-cover"
                 />
                 <button

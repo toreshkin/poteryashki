@@ -113,7 +113,7 @@ export default function SimilarReports({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={s.photos[0]}
-                  alt=""
+                  alt="Фото похожего животного"
                   className="shrink-0 rounded-[13px] object-cover"
                   style={{ width: 82, height: 82 }}
                 />
