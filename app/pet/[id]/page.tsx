@@ -4,11 +4,15 @@ import { notFound } from "next/navigation";
 import { getServiceClient } from "@/lib/supabase";
 import { ANIMAL_TYPE_LABELS, Report, REPORT_TYPE_LABELS } from "@/lib/types";
 import { SITE_NAME } from "@/lib/config";
-import { PUBLIC_FIELDS_WITH_CONTACTS } from "@/lib/report-fields";
+import {
+  PUBLIC_FIELDS_WITH_CONTACTS,
+  selectWithFallback,
+} from "@/lib/report-fields";
 import { findSimilarNearby, SimilarReport } from "@/lib/similar";
 import { ContactLinks, ReportBadges } from "@/components/PetSheet";
 import ResolveForm from "@/components/ResolveForm";
 import ShareButton from "@/components/ShareButton";
+import SourceNotice from "@/components/SourceNotice";
 import Sightings from "@/components/Sightings";
 import SimilarReports from "@/components/SimilarReports";
 import { ChevronLeftIcon, ImageIcon, MapPinIcon } from "@/components/Icons";
@@ -18,14 +22,18 @@ export const dynamic = "force-dynamic";
 async function getReport(id: string): Promise<Report | null> {
   try {
     const supabase = getServiceClient();
-    const { data } = await supabase
-      .from("reports")
-      // Страница одной заявки — единственное место, где контакты уходят в разметку
-      .select(PUBLIC_FIELDS_WITH_CONTACTS)
-      .eq("id", id)
-      .neq("status", "hidden")
-      .maybeSingle();
-    return (data as Report) ?? null;
+    const { data } = await selectWithFallback<Report>(
+      (fields) =>
+        supabase
+          .from("reports")
+          // Страница одной заявки — единственное место, где контакты уходят в разметку
+          .select(fields)
+          .eq("id", id)
+          .neq("status", "hidden")
+          .maybeSingle<Report>(),
+      PUBLIC_FIELDS_WITH_CONTACTS
+    );
+    return data ?? null;
   } catch {
     return null;
   }
@@ -130,6 +138,8 @@ export default async function PetPage({ params }: PageProps<"/pet/[id]">) {
             </div>
           )}
         </div>
+
+        <SourceNotice report={report} />
 
         <div className="flex gap-2.5">
           <ContactLinks report={report} />

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { distanceKm } from "@/lib/geo";
-import { PUBLIC_FIELDS } from "@/lib/report-fields";
+import { selectWithFallback } from "@/lib/report-fields";
 import { Report, ReportType } from "@/lib/types";
 
 // «Похожие рядом»: активные заявки противоположного типа того же вида
@@ -39,14 +39,17 @@ export async function findSimilarNearby(
     );
   }
 
-  const { data: rows } = await supabase
-    .from("reports")
-    .select(PUBLIC_FIELDS)
-    .eq("status", "active")
-    .eq("report_type", targetType)
-    .eq("animal_type", report.animal_type)
-    .limit(200);
-  return ((rows as unknown as Report[]) ?? [])
+  const { data: rows } = await selectWithFallback<Report[]>((fields) =>
+    supabase
+      .from("reports")
+      .select(fields)
+      .eq("status", "active")
+      .eq("report_type", targetType)
+      .eq("animal_type", report.animal_type)
+      .limit(200)
+      .returns<Report[]>()
+  );
+  return (rows ?? [])
     .map((r) => ({
       ...r,
       distance: distanceKm(report.lat, report.lng, r.lat, r.lng),

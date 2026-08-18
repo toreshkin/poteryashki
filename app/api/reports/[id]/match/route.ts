@@ -4,7 +4,7 @@ import { AiError, ReportSummary } from "@/lib/ai/types";
 import { getServiceClient } from "@/lib/supabase";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { Report } from "@/lib/types";
-import { PUBLIC_FIELDS } from "@/lib/report-fields";
+import { selectWithFallback } from "@/lib/report-fields";
 import { findSimilarNearby } from "@/lib/similar";
 
 export const runtime = "nodejs";
@@ -69,12 +69,14 @@ export async function POST(
 
   try {
     const supabase = getServiceClient();
-    const { data: report } = await supabase
-      .from("reports")
-      .select(PUBLIC_FIELDS)
-      .eq("id", id)
-      .eq("status", "active")
-      .maybeSingle<Report>();
+    const { data: report } = await selectWithFallback<Report>((fields) =>
+      supabase
+        .from("reports")
+        .select(fields)
+        .eq("id", id)
+        .eq("status", "active")
+        .maybeSingle<Report>()
+    );
     if (!report) {
       return NextResponse.json({ error: "Заявка не найдена" }, { status: 404 });
     }

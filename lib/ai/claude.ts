@@ -2,6 +2,7 @@ import {
   AiError,
   AiProvider,
   MatchResult,
+  ParsedAnnouncement,
   PhotoDescription,
   ReportSummary,
   SearchFilters,
@@ -9,10 +10,12 @@ import {
 import {
   comparePrompt,
   DESCRIBE_PROMPT,
+  importPrompt,
   SEARCH_PROMPT,
   parseJsonResponse,
 } from "@/lib/ai/prompts";
 import {
+  normalizeAnnouncement,
   normalizeDescription,
   normalizeMatch,
   normalizeSearch,
@@ -108,5 +111,12 @@ export const claudeProvider: AiProvider = {
       { type: "text", text: `${SEARCH_PROMPT}\n\nЗапрос: ${query}` },
     ]);
     return normalizeSearch(parseJsonResponse(text));
+  },
+
+  async parseAnnouncement(text: string): Promise<ParsedAnnouncement> {
+    const answer = await complete([
+      { type: "text", text: importPrompt(text) },
+    ]);
+    return normalizeAnnouncement(parseJsonResponse(answer));
   },
 };

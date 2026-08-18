@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase";
-import { getClientIp, rateLimit, sha256 } from "@/lib/rate-limit";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { MAX_PHOTOS } from "@/lib/config";
-import { PUBLIC_FIELDS } from "@/lib/report-fields";
+import { selectWithFallback } from "@/lib/report-fields";
 import { sniffImageType, IMAGE_EXTENSIONS } from "@/lib/images";
 import { reportInputSchema, firstIssue } from "@/lib/validation";
 import { withErrorHandling } from "@/lib/api-helpers";
 import { verifyInitData } from "@/lib/telegram-auth";
-import { sendTelegramMessage, reportUrl } from "@/lib/telegram-bot";
-import { distanceKm } from "@/lib/geo";
-import { ANIMAL_TYPE_LABELS, AnimalType } from "@/lib/types";
+import { createReport } from "@/lib/create-report";
 
 export const runtime = "nodejs";
 
@@ -26,61 +24,19 @@ export const GET = withErrorHandling(async (req: Request) => {
   const before = url.searchParams.get("before");
 
   const supabase = getServiceClient();
-  let query = supabase
-    .from("reports")
-    .select(PUBLIC_FIELDS)
-    .neq("status", "hidden")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (before) query = query.lt("created_at", before);
-  const { data, error } = await query;
+  const { data, error } = await selectWithFallback((fields) => {
+    let query = supabase
+      .from("reports")
+      .select(fields)
+      .neq("status", "hidden")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (before) query = query.lt("created_at", before);
+    return query;
+  });
   if (error) throw error;
   return NextResponse.json(data);
 }, "Не удалось загрузить заявки");
-
-const NOTIFY_RADIUS_KM = 3;
-
-/** Авторам активных lost-заявок того же вида в радиусе — сообщение о находке. */
-async function notifyNearbyLostAuthors(
-  supabase: ReturnType<typeof getServiceClient>,
-  animalType: AnimalType,
-  lat: number,
-  lng: number,
-  foundReportId: string
-): Promise<void> {
-  const { data, error } = await supabase
-    .from("reports")
-    .select("id, lat, lng, tg_chat_id")
-    .eq("status", "active")
-    .eq("report_type", "lost")
-    .eq("animal_type", animalType)
-    .not("tg_chat_id", "is", null)
-    .limit(200);
-  // Колонки tg_* может не быть, если не выполнен supabase/telegram.sql
-  if (error || !data) return;
-
-  const url = reportUrl(foundReportId);
-  const label = ANIMAL_TYPE_LABELS[animalType].toLowerCase();
-  const text = [
-    `Рядом с местом пропажи нашли животное (${label}) — возможно, это ваш питомец.`,
-    url ?? "Откройте «Потеряшки», чтобы посмотреть заявку.",
-  ].join("\n");
-
-  const nearby = data.filter(
-    (r) => distanceKm(lat, lng, r.lat, r.lng) <= NOTIFY_RADIUS_KM
-  );
-  for (const r of nearby) {
-    await sendTelegramMessage(r.tg_chat_id, text);
-  }
-}
-
-function generateSecretCode(): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from(
-    { length: 6 },
-    () => alphabet[Math.floor(Math.random() * alphabet.length)]
-  ).join("");
-}
 
 export const POST = withErrorHandling(async (req: Request) => {
   const ip = getClientIp(req);
@@ -117,7 +73,6 @@ export const POST = withErrorHandling(async (req: Request) => {
     const input = parsed.data;
 
     const supabase = getServiceClient();
-    const secretCode = generateSecretCode();
 
     // Загрузка фото в Storage. Тип определяем по содержимому файла:
     // file.type приходит от клиента, а бакет публичный.
@@ -177,54 +132,23 @@ export const POST = withErrorHandling(async (req: Request) => {
     // без валидной подписи заявка просто остаётся без привязки.
     const tg = verifyInitData(String(form.get("init_data") ?? "") || null);
 
-    const row = {
-      report_type: input.report_type,
-      animal_type: input.animal_type,
-      name: input.name || null,
-      description: input.description,
-      landmarks: input.landmarks || null,
-      lat: input.lat,
-      lng: input.lng,
-      photos: photoUrls,
-      contact_phone: input.contact_phone || null,
-      contact_telegram: input.contact_telegram || null,
-      secret_code_hash: sha256(secretCode),
-      event_date: input.event_date || new Date().toISOString().slice(0, 10),
-    };
+    const { id, secretCode } = await createReport(
+      {
+        report_type: input.report_type,
+        animal_type: input.animal_type,
+        name: input.name || null,
+        description: input.description,
+        landmarks: input.landmarks || null,
+        lat: input.lat,
+        lng: input.lng,
+        photos: photoUrls,
+        contact_phone: input.contact_phone || null,
+        contact_telegram: input.contact_telegram || null,
+        event_date: input.event_date || new Date().toISOString().slice(0, 10),
+      },
+      { tgUserId: tg?.userId, tgChatId: tg?.chatId, source: "user" }
+    );
 
-    let inserted = tg
-      ? await supabase
-          .from("reports")
-          .insert({ ...row, tg_user_id: tg.userId, tg_chat_id: tg.chatId })
-          .select("id")
-          .single()
-      : null;
-    if (inserted?.error) {
-      // Частая причина — не выполнен supabase/telegram.sql: повторяем без tg-полей
-      console.error(
-        "Не удалось сохранить tg-поля (выполнен ли supabase/telegram.sql?):",
-        inserted.error.message
-      );
-      inserted = null;
-    }
-    if (!inserted) {
-      inserted = await supabase.from("reports").insert(row).select("id").single();
-    }
-    if (inserted.error) throw inserted.error;
-    const reportId = inserted.data.id as string;
-
-    // Найдено животное — сообщаем авторам активных «потеряшек» того же вида рядом.
-    // Ошибки не должны ломать ответ: заявка уже создана.
-    if (input.report_type === "found") {
-      await notifyNearbyLostAuthors(
-        supabase,
-        input.animal_type,
-        input.lat,
-        input.lng,
-        reportId
-      ).catch((err) => console.error("Уведомление о находке:", err));
-    }
-
-    return NextResponse.json({ id: reportId, secret_code: secretCode });
+    return NextResponse.json({ id, secret_code: secretCode });
   }
 }, "Не удалось создать заявку");

@@ -11,6 +11,7 @@ import {
 import StatusBadge from "@/components/StatusBadge";
 import ShareButton from "@/components/ShareButton";
 import PhotoThumb from "@/components/PhotoThumb";
+import SourceNotice from "@/components/SourceNotice";
 import { useDialog } from "@/components/useDialog";
 import {
   ChevronRightIcon,
@@ -279,6 +280,8 @@ export default function PetSheet({
               <span className="text-pretty">{report.landmarks}</span>
             </div>
           )}
+
+          <SourceNotice report={report} />
 
           <div className="flex gap-2.5">
             {contactsLoading ? (

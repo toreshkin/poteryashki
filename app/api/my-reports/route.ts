@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-import { PUBLIC_FIELDS_WITH_CONTACTS } from "@/lib/report-fields";
+import {
+  PUBLIC_FIELDS_WITH_CONTACTS,
+  selectWithFallback,
+} from "@/lib/report-fields";
 import { telegramEnabled, verifyInitData } from "@/lib/telegram-auth";
 import { withErrorHandling } from "@/lib/api-helpers";
 
@@ -31,13 +34,17 @@ export const POST = withErrorHandling(async (req: Request) => {
     }
 
     const supabase = getServiceClient();
-    const { data, error } = await supabase
-      .from("reports")
-      // Автор видит и свои скрытые заявки — вместе со статусом
-      .select(PUBLIC_FIELDS_WITH_CONTACTS)
-      .eq("tg_user_id", tg.userId)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const { data, error } = await selectWithFallback(
+      (fields) =>
+        supabase
+          .from("reports")
+          // Автор видит и свои скрытые заявки — вместе со статусом
+          .select(fields)
+          .eq("tg_user_id", tg.userId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      PUBLIC_FIELDS_WITH_CONTACTS
+    );
     if (error) {
       // Нет колонки tg_user_id — не выполнен supabase/telegram.sql
       console.error("Мои заявки:", error.message);

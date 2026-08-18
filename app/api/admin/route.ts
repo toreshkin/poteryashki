@@ -2,7 +2,10 @@ import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase";
 import { getClientIp, sha256 } from "@/lib/rate-limit";
-import { PUBLIC_FIELDS_WITH_CONTACTS } from "@/lib/report-fields";
+import {
+  PUBLIC_FIELDS_WITH_CONTACTS,
+  selectWithFallback,
+} from "@/lib/report-fields";
 import { withErrorHandling } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
@@ -57,14 +60,16 @@ export const GET = withErrorHandling(async (req: Request) => {
   const authError = checkAuth(req);
   if (authError) return authError;
   const supabase = getServiceClient();
-  const { data, error } = await supabase
-    .from("reports")
-    // Явный список полей: secret_code_hash не должен уходить на клиент
-    .select(
-      `${PUBLIC_FIELDS_WITH_CONTACTS}, complaints(id, reason, comment, created_at)`
-    )
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const { data, error } = await selectWithFallback(
+    (fields) =>
+      supabase
+        .from("reports")
+        // Явный список полей: secret_code_hash не должен уходить на клиент
+        .select(`${fields}, complaints(id, reason, comment, created_at)`)
+        .order("created_at", { ascending: false })
+        .limit(500),
+    PUBLIC_FIELDS_WITH_CONTACTS
+  );
   if (error) throw error;
   return NextResponse.json(data);
 });

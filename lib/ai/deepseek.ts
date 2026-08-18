@@ -2,16 +2,22 @@ import {
   AiError,
   AiProvider,
   MatchResult,
+  ParsedAnnouncement,
   PhotoDescription,
   ReportSummary,
   SearchFilters,
 } from "@/lib/ai/types";
 import {
   comparePrompt,
+  importPrompt,
   SEARCH_PROMPT,
   parseJsonResponse,
 } from "@/lib/ai/prompts";
-import { normalizeMatch, normalizeSearch } from "@/lib/ai/normalize";
+import {
+  normalizeAnnouncement,
+  normalizeMatch,
+  normalizeSearch,
+} from "@/lib/ai/normalize";
 
 // DeepSeek — OpenAI-совместимый API, изображения не поддерживает.
 const MODEL = process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
@@ -71,5 +77,11 @@ export const deepseekProvider: AiProvider = {
   async parseSearchQuery(query: string): Promise<SearchFilters> {
     const text = await complete(`${SEARCH_PROMPT}\n\nЗапрос: ${query}`);
     return normalizeSearch(parseJsonResponse(text));
+  },
+
+  async parseAnnouncement(text: string): Promise<ParsedAnnouncement> {
+    return normalizeAnnouncement(
+      parseJsonResponse(await complete(importPrompt(text)))
+    );
   },
 };

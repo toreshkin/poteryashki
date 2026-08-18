@@ -19,6 +19,8 @@ export interface Report {
   contact_telegram?: string | null;
   status: ReportStatus;
   event_date: string;
+  /** 'import' — заявка перенесена из городского паблика, контакты не проверены. */
+  source?: "user" | "import";
 }
 
 export const REPORT_TYPE_LABELS: Record<ReportType, string> = {

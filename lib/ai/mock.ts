@@ -1,10 +1,13 @@
 import {
   AiProvider,
   MatchResult,
+  ParsedAnnouncement,
   PhotoDescription,
   ReportSummary,
   SearchFilters,
 } from "@/lib/ai/types";
+import { normalizeAnnouncement } from "@/lib/ai/normalize";
+import { findDistrict } from "@/lib/districts";
 
 /**
  * Тестовый провайдер: отвечает без сети и без затрат.
@@ -55,6 +58,35 @@ export const mockProvider: AiProvider = {
         .filter((w) => w.length > 3)
         .slice(0, 5),
     };
+  },
+
+  async parseAnnouncement(text: string): Promise<ParsedAnnouncement> {
+    await delay();
+    const t = text.toLowerCase();
+    // Простые эвристики вместо модели — чтобы гонять сценарий импорта
+    // целиком без сети и без затрат.
+    const phone = text.match(/(\+?996|0)\s?\d{3}[\s-]?\d{2}[\s-]?\d{2}[\s-]?\d{2}/);
+    const telegram = text.match(/@[A-Za-z0-9_]{5,32}/);
+    return normalizeAnnouncement({
+      report_type: /нашл|найден|подобра|прибил/.test(t)
+        ? "found"
+        : /потер|пропа|убежал|сбежал/.test(t)
+          ? "lost"
+          : null,
+      animal_type: /кош|кот|кыс/.test(t)
+        ? "cat"
+        : /соба|пёс|пес|щен/.test(t)
+          ? "dog"
+          : "other",
+      name: null,
+      description: `${text.slice(0, 300)} (Тестовый разбор — настоящий ИИ пока не подключён.)`,
+      landmarks: null,
+      district: findDistrict(t)?.key ?? null,
+      event_date: null,
+      contact_phone: phone?.[0] ?? null,
+      contact_telegram: telegram?.[0] ?? null,
+      confidence: "high",
+    });
   },
 };
 

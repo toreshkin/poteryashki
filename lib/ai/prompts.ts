@@ -1,5 +1,6 @@
 import { ReportSummary } from "@/lib/ai/types";
 import { ANIMAL_TYPE_LABELS, REPORT_TYPE_LABELS } from "@/lib/types";
+import { districtListForPrompt } from "@/lib/districts";
 
 export const DESCRIBE_PROMPT = `Ты помогаешь заполнить объявление о потерявшемся или найденном животном в Бишкеке.
 Опиши животное на фотографии так, чтобы его можно было узнать на улице.
@@ -38,6 +39,40 @@ export const SEARCH_PROMPT = `Ты превращаешь поисковый з�
 
 report_type: "lost" — если ищут пропавшего, "found" — если ищут информацию о найденном.
 keywords — только значимые слова в начальной форме, без предлогов.`;
+
+/** Промпт зависит от текущей даты и списка районов, поэтому это функция. */
+export function importPrompt(text: string): string {
+  const today = new Date().toISOString().slice(0, 10);
+  return `Ты превращаешь объявление из городского паблика Бишкека в карточку заявки о животном.
+
+Ответь JSON-объектом без пояснений:
+{
+  "report_type": "lost" | "found" | null,
+  "animal_type": "dog" | "cat" | "other",
+  "name": "кличка или null",
+  "description": "2-4 предложения на русском: вид, окрас, размер, приметы, ошейник, обстоятельства",
+  "landmarks": "место словами, как в объявлении, или null",
+  "district": "ключ района из списка ниже или null",
+  "event_date": "YYYY-MM-DD или null",
+  "contact_phone": "телефон или null",
+  "contact_telegram": "@username или null",
+  "confidence": "high" | "low"
+}
+
+Районы (выбирай ключ, который лучше всего соответствует месту): ${districtListForPrompt()}
+
+Правила:
+- report_type: "lost" — животное пропало у хозяина, "found" — его нашли на улице. Если непонятно, верни null.
+- Ничего не выдумывай. Если сведений в тексте нет, ставь null. Не придумывай кличку, если её не назвали.
+- Сегодня ${today}. Относительные даты («вчера», «3 дня назад», «в субботу») переведи в YYYY-MM-DD. Дата не может быть в будущем.
+- description пиши своими словами, спокойным тоном, без заглавных букв целиком и без «СРОЧНО!!!». Не переноси в него телефоны.
+- confidence: "low", если текст не об потерянном или найденном животном, либо данных почти нет.
+
+Текст объявления:
+"""
+${text}
+"""`;
+}
 
 export function reportToText(r: ReportSummary): string {
   return [
