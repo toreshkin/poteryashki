@@ -17,8 +17,62 @@ export interface GeocodeResult {
   label: string;
 }
 
+const MAX_ATTEMPTS = 3;
+
+/**
+ * Основы слов, которые сами по себе ничего не значат: по запросу «квартал»
+ * Nominatim выдаёт случайный объект на другом конце страны.
+ * Сравниваем по началу слова, чтобы ловить падежи («во дворе», «с домом»).
+ */
+const GENERIC_STEMS = [
+  "квартал", "дом", "двор", "район", "мкр", "микрорайон", "жк", "тжк",
+  "город", "улиц", "ул", "переул", "проспект", "рядом", "около", "возле",
+  "напротив", "территор", "остановк", "магазин",
+];
+
+function isGeneric(word: string): boolean {
+  return GENERIC_STEMS.some((stem) => word.startsWith(stem));
+}
+
 const cache = new Map<string, GeocodeResult | null>();
 let lastRequestAt = 0;
+
+function isMeaningful(query: string): boolean {
+  // Нужно хотя бы одно собственное название: «Итальянский», «Чуй», «Бабаева».
+  // Номер дома тоже годится — «проспект Чуй 100».
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .some((w) => !isGeneric(w) && (w.length >= 3 || /\d/.test(w)));
+}
+
+/**
+ * Варианты запроса из одного ориентира. В объявлениях место часто пишут
+ * перечислением («Итальянский, Французский, Английский квартал») — целиком
+ * такой запрос не находится, а по частям находится. Одиночным названиям
+ * возвращаем тип объекта из последней части: «Итальянский» → «Итальянский квартал».
+ */
+export function candidateQueries(landmarks: string): string[] {
+  const cleaned = landmarks.replace(/["«»]/g, " ").trim();
+  const parts = cleaned
+    .split(/[,;/]| и /i)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const lastWords = parts[parts.length - 1]?.split(/\s+/) ?? [];
+  const lastWord = lastWords[lastWords.length - 1] ?? "";
+  const kind =
+    lastWords.length > 1 && isGeneric(lastWord.toLowerCase()) ? lastWord : null;
+
+  const queries = [cleaned];
+  for (const part of parts) {
+    queries.push(
+      kind && part.split(/\s+/).length === 1 ? `${part} ${kind}` : part
+    );
+  }
+  return [...new Set(queries)].filter(isMeaningful);
+}
 
 function userAgent(): string {
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://poteryashki.local";
@@ -31,7 +85,7 @@ function shortLabel(displayName: string): string {
 }
 
 /**
- * Ищет координаты ориентира в Кыргызстане.
+ * Ищет координаты ориентира в Кыргызстане, пробуя несколько формулировок.
  * null — не нашли или сервис недоступен; тогда место указывает человек.
  */
 export async function geocodeLandmark(
@@ -39,9 +93,20 @@ export async function geocodeLandmark(
   cityHint?: string | null
 ): Promise<GeocodeResult | null> {
   const base = (query ?? "").trim();
-  if (base.length < 3) return null;
+  if (base.length < 4) return null;
 
-  const search = [base, cityHint].filter(Boolean).join(", ");
+  for (const candidate of candidateQueries(base).slice(0, MAX_ATTEMPTS)) {
+    const result = await searchOnce(candidate, cityHint);
+    if (result) return result;
+  }
+  return null;
+}
+
+async function searchOnce(
+  query: string,
+  cityHint?: string | null
+): Promise<GeocodeResult | null> {
+  const search = [query, cityHint].filter(Boolean).join(", ");
   const cacheKey = search.toLowerCase();
   if (cache.has(cacheKey)) return cache.get(cacheKey) ?? null;
 

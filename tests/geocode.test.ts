@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { geocodeLandmark } from "@/lib/geocode";
+import { candidateQueries, geocodeLandmark } from "@/lib/geocode";
 
 // Сеть подменяем: тесты не должны ходить в Nominatim.
 const realFetch = globalThis.fetch;
@@ -28,6 +28,30 @@ const NOMINATIM_ANSWER = [
   },
 ];
 
+describe("candidateQueries", () => {
+  it("разбивает перечисление и приклеивает тип объекта к одиночным названиям", () => {
+    // Реальный ориентир из объявления: целиком такой запрос не находится
+    const queries = candidateQueries("Итальянский, Французский, Английский квартал");
+    expect(queries).toContain("Итальянский квартал");
+    expect(queries).toContain("Французский квартал");
+    expect(queries).toContain("Английский квартал");
+  });
+
+  it("отбрасывает обрывки без собственного названия", () => {
+    // По запросу «квартал» Nominatim выдаёт случайный объект в другой области
+    expect(candidateQueries("квартал")).toEqual([]);
+    expect(candidateQueries("во дворе, рядом с домом")).toEqual([]);
+  });
+
+  it("оставляет обычный ориентир как есть", () => {
+    expect(candidateQueries("улица Бабаева")).toEqual(["улица Бабаева"]);
+  });
+
+  it("снимает кавычки", () => {
+    expect(candidateQueries('ЖК "Асанбай"')[0]).toBe("ЖК  Асанбай");
+  });
+});
+
 describe("geocodeLandmark", () => {
   it("возвращает координаты и короткую подпись", async () => {
     mockFetch(NOMINATIM_ANSWER);
@@ -50,6 +74,24 @@ describe("geocodeLandmark", () => {
     await geocodeLandmark("улица Байтик Баатыра", "Бишкек");
     const init = fn.mock.calls[0][1] as { headers: Record<string, string> };
     expect(init.headers["User-Agent"]).toContain("poteryashki");
+  });
+
+  it("пробует следующий вариант, если первый не нашёлся", async () => {
+    const fn = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => [] })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => NOMINATIM_ANSWER,
+      });
+    globalThis.fetch = fn as unknown as typeof fetch;
+
+    const result = await geocodeLandmark(
+      "Итальянский, Французский, Английский квартал перебор-тест"
+    );
+    expect(result?.lat).toBeCloseTo(42.81815, 4);
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 
   it("возвращает null на пустой ответ, ошибку сети и короткий запрос", async () => {
