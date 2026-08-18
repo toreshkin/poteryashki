@@ -118,14 +118,21 @@ export async function findPublishedDuplicate(
 /** Карточка разбора для чата: человек должен увидеть, что понял ИИ. */
 export function draftToText(
   parsed: ParsedAnnouncement,
-  position: { hasPlace: boolean; districtKey: string | null }
+  position: {
+    hasPlace: boolean;
+    districtKey: string | null;
+    /** Координаты совпали с центром района — значит место приблизительное. */
+    fromDistrict: boolean;
+  }
 ): string {
   const district = findDistrict(position.districtKey);
   const place = !position.hasPlace
     ? "Место: не определено — укажите кнопкой ниже"
-    : district
+    : position.fromDistrict && district
       ? `Место: ${district.label} (примерно — можно уточнить)`
-      : "Место: указано вручную";
+      : parsed.landmarks
+        ? `Место: найдено по ориентиру «${parsed.landmarks}» — проверьте`
+        : "Место: указано вручную";
 
   const lines = [
     parsed.report_type

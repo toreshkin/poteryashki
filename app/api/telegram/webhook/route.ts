@@ -6,6 +6,7 @@ import { getServiceClient } from "@/lib/supabase";
 import { sniffImageType, IMAGE_EXTENSIONS } from "@/lib/images";
 import { MAX_PHOTOS } from "@/lib/config";
 import { districtCenter, findDistrict } from "@/lib/districts";
+import { geocodeLandmark } from "@/lib/geocode";
 import { createReport } from "@/lib/create-report";
 import {
   answerCallbackQuery,
@@ -117,12 +118,23 @@ function publishButtons(draft: ImportDraft): InlineButton[][] {
   return rows;
 }
 
+/** Стоит ли метка ровно в центре района — тогда место приблизительное. */
+function isDistrictCenter(draft: ImportDraft): boolean {
+  const center = districtCenter(findDistrict(draft.parsed.district));
+  if (!center || draft.lat == null || draft.lng == null) return false;
+  return (
+    Math.abs(center[0] - draft.lat) < 1e-6 &&
+    Math.abs(center[1] - draft.lng) < 1e-6
+  );
+}
+
 async function sendDraftCard(draft: ImportDraft, prefix?: string): Promise<void> {
   const text = [
     prefix,
     draftToText(draft.parsed, {
       hasPlace: draft.lat != null && draft.lng != null,
       districtKey: draft.parsed.district,
+      fromDistrict: isDistrictCenter(draft),
     }),
   ]
     .filter(Boolean)
@@ -230,11 +242,18 @@ async function handleMessage(message: TgMessage): Promise<void> {
     return;
   }
 
-  // Место ищем и по ключу от модели, и по всему тексту объявления:
-  // город часто стоит отдельной строкой («г. Токмок»).
+  // Место: сначала словарь (районы и города, знает местный жаргон),
+  // потом геокодер по ориентиру (знает ЖК, улицы), иначе — уточняет человек.
   const district = findDistrict(parsed.district) ?? findDistrict(text);
-  const center = districtCenter(district);
-  const [lat, lng] = center ?? [null, null];
+  let [lat, lng] = districtCenter(district) ?? [null, null];
+  if (parsed.landmarks) {
+    const geo = await geocodeLandmark(parsed.landmarks, district?.label);
+    if (geo) {
+      lat = geo.lat;
+      lng = geo.lng;
+    }
+  }
+
   const draft = await saveDraft({
     tgUserId: userId,
     tgChatId: chatId,
