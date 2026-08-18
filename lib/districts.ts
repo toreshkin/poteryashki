@@ -1,10 +1,13 @@
-import { CITY_CENTER } from "@/lib/config";
-
-// Районы и ориентиры Бишкека с координатами центра.
+// Места с координатами центра: районы Бишкека и другие города Кыргызстана.
 // Нужны для импорта объявлений из пабликов: модели плохо воспроизводят
-// координаты числами, поэтому ИИ выбирает район из этого списка, а координаты
+// координаты числами, поэтому ИИ выбирает место из этого списка, а координаты
 // берём отсюда. Точность ~1–2 км — метка встаёт в нужную часть города,
 // дальше место уточняется вручную.
+//
+// Города обязательны: в пабликах Чуйской области попадаются объявления из
+// Токмока, Канта, Кара-Балты. Если такое место не распознать, заявка молча
+// уедет в центр Бишкека — поэтому нераспознанное место считается ошибкой,
+// а не поводом подставить центр (см. findDistrict → null).
 
 export interface District {
   key: string;
@@ -12,9 +15,12 @@ export interface District {
   center: [number, number];
   /** Написания, встречающиеся в объявлениях. Все в нижнем регистре. */
   aliases: string[];
+  /** Показывать ли кнопкой при уточнении места (иначе только распознавание). */
+  common?: boolean;
 }
 
-export const DISTRICTS: District[] = [
+/** Районы и ориентиры Бишкека — все показываются кнопками при уточнении. */
+const BISHKEK_DISTRICTS: District[] = ([
   {
     key: "center",
     label: "Центр",
@@ -135,26 +141,162 @@ export const DISTRICTS: District[] = [
     center: [42.8951, 74.5464],
     aliases: ["кара-жыгач", "кара жыгач", "карагачевая роща", "карагач"],
   },
+] as District[]).map((d) => ({ ...d, common: true }));
+
+/**
+ * Другие города и посёлки Кыргызстана. Города Чуйской области помечены
+ * common — они чаще всего попадаются в бишкекских пабликах.
+ */
+const OTHER_CITIES: District[] = [
+  {
+    key: "tokmok",
+    label: "Токмок",
+    center: [42.8421, 75.29],
+    aliases: ["токмок", "токмак"],
+    common: true,
+  },
+  {
+    key: "kant",
+    label: "Кант",
+    center: [42.8917, 74.8508],
+    aliases: ["кант"],
+    common: true,
+  },
+  {
+    key: "kara-balta",
+    label: "Кара-Балта",
+    center: [42.8167, 73.8481],
+    aliases: ["кара-балта", "кара балта", "карабалта"],
+    common: true,
+  },
+  {
+    key: "sokuluk",
+    label: "Сокулук",
+    center: [42.8631, 74.2917],
+    aliases: ["сокулук"],
+    common: true,
+  },
+  {
+    key: "lebedinovka",
+    label: "Лебединовка",
+    center: [42.8783, 74.7139],
+    aliases: ["лебединовка", "лебедёновка"],
+    common: true,
+  },
+  {
+    key: "belovodskoe",
+    label: "Беловодское",
+    center: [42.8253, 73.9942],
+    aliases: ["беловодское", "беловодск"],
+  },
+  {
+    key: "kemin",
+    label: "Кемин",
+    center: [42.7853, 75.6889],
+    aliases: ["кемин"],
+  },
+  {
+    key: "osh",
+    label: "Ош",
+    center: [40.5283, 72.7985],
+    aliases: ["ош"],
+  },
+  {
+    key: "jalal-abad",
+    label: "Джалал-Абад",
+    center: [40.9333, 73.0],
+    aliases: ["джалал-абад", "джалал абад", "жалал-абад", "жалалабад"],
+  },
+  {
+    key: "karakol",
+    label: "Каракол",
+    center: [42.4907, 78.3936],
+    aliases: ["каракол"],
+  },
+  {
+    key: "balykchy",
+    label: "Балыкчы",
+    center: [42.4606, 76.1856],
+    aliases: ["балыкчы", "балыкчи", "рыбачье"],
+  },
+  {
+    key: "cholpon-ata",
+    label: "Чолпон-Ата",
+    center: [42.65, 77.0833],
+    aliases: ["чолпон-ата", "чолпон ата"],
+  },
+  {
+    key: "naryn",
+    label: "Нарын",
+    center: [41.4287, 75.9911],
+    aliases: ["нарын"],
+  },
+  {
+    key: "talas",
+    label: "Талас",
+    center: [42.5228, 72.2422],
+    aliases: ["талас"],
+  },
+  {
+    key: "batken",
+    label: "Баткен",
+    center: [40.0619, 70.8194],
+    aliases: ["баткен"],
+  },
+  {
+    key: "uzgen",
+    label: "Узген",
+    center: [40.7708, 73.3006],
+    aliases: ["узген", "өзгөн"],
+  },
+  {
+    key: "kyzyl-kiya",
+    label: "Кызыл-Кия",
+    center: [40.2578, 72.1281],
+    aliases: ["кызыл-кия", "кызыл кия"],
+  },
 ];
+
+export const DISTRICTS: District[] = [...BISHKEK_DISTRICTS, ...OTHER_CITIES];
 
 /** Список для промпта: ключ — подпись, чтобы модель выбрала из известных. */
 export function districtListForPrompt(): string {
   return DISTRICTS.map((d) => `${d.key} (${d.label})`).join(", ");
 }
 
-const STEM_LENGTH = 4;
+/** Места для кнопок уточнения: районы Бишкека и города Чуйской области. */
+export function commonDistricts(): District[] {
+  return DISTRICTS.filter((d) => d.common);
+}
+
+/** Русские окончания, которые может принимать название места. */
+const ENDINGS = new Set([
+  "", "а", "е", "и", "й", "о", "у", "ы", "ь", "ю", "я",
+  "ам", "ах", "ая", "ев", "ей", "ем", "ий", "им", "их", "ка", "ке", "ки",
+  "ко", "ку", "ов", "ое", "ой", "ок", "ом", "ою", "ые", "ый", "ым", "ых",
+  "ья", "ье", "ами", "ого", "ому", "ыми", "ими", "ках", "кам",
+]);
+
+const MIN_PREFIX = 3;
+
+function commonPrefixLength(a: string, b: string): number {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
+}
 
 /**
- * Основы слова: в объявлениях районы склоняют («на Дордое», «у Ошского рынка»).
- * Второй вариант — на случай беглой гласной («рынок» → «рынка»).
+ * Слово текста и слово названия — формы одного слова: совпадает основа,
+ * а расходятся только окончания. Так «на Дордое» находит «дордой»,
+ * «у Ошского рынка» — «ошский рынок», но «ошейник» не находит город Ош,
+ * а «кантри» — город Кант.
  */
-function stems(word: string): string[] {
-  const base = word.slice(0, STEM_LENGTH);
-  if (/[оеё][кцнрлм]$/.test(word)) {
-    const dropped = word.slice(0, -2) + word.slice(-1);
-    return [base, dropped.slice(0, STEM_LENGTH)];
-  }
-  return [base];
+function wordsMatch(textWord: string, aliasWord: string): boolean {
+  const prefix = commonPrefixLength(textWord, aliasWord);
+  if (prefix < Math.min(MIN_PREFIX, aliasWord.length)) return false;
+  return (
+    ENDINGS.has(textWord.slice(prefix)) && ENDINGS.has(aliasWord.slice(prefix))
+  );
 }
 
 function words(text: string): string[] {
@@ -189,14 +331,16 @@ export function findDistrict(text: string | null | undefined): District | null {
     );
 
   const match = candidates.find(({ parts }) =>
-    parts.every((part) =>
-      stems(part).some((s) => textWords.some((word) => word.startsWith(s)))
-    )
+    parts.every((part) => textWords.some((word) => wordsMatch(word, part)))
   );
   return match?.district ?? null;
 }
 
-/** Координаты района, либо центр города, если район не определён. */
-export function districtCenter(district: District | null): [number, number] {
-  return district?.center ?? CITY_CENTER;
+/**
+ * Координаты места или null, если оно не распознано.
+ * Подставлять центр Бишкека здесь нельзя: объявление из Токмока молча
+ * оказалось бы на карте Бишкека. Нераспознанное место уточняет человек.
+ */
+export function districtCenter(district: District | null): [number, number] | null {
+  return district?.center ?? null;
 }

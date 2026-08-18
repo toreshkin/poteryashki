@@ -5,7 +5,7 @@ import {
   ANIMAL_TYPE_LABELS,
   REPORT_TYPE_LABELS,
 } from "@/lib/types";
-import { DISTRICTS, findDistrict } from "@/lib/districts";
+import { commonDistricts, findDistrict } from "@/lib/districts";
 
 // Черновики импорта: между разбором текста и нажатием кнопки «Опубликовать»
 // проходит отдельный запрос от Telegram, поэтому состояние храним в БД
@@ -118,9 +118,15 @@ export async function findPublishedDuplicate(
 /** Карточка разбора для чата: человек должен увидеть, что понял ИИ. */
 export function draftToText(
   parsed: ParsedAnnouncement,
-  position: { lat: number; lng: number; districtKey: string | null; exact: boolean }
+  position: { hasPlace: boolean; districtKey: string | null }
 ): string {
   const district = findDistrict(position.districtKey);
+  const place = !position.hasPlace
+    ? "Место: не определено — укажите кнопкой ниже"
+    : district
+      ? `Место: ${district.label} (примерно — можно уточнить)`
+      : "Место: указано вручную";
+
   const lines = [
     parsed.report_type
       ? `Тип: ${REPORT_TYPE_LABELS[parsed.report_type]}`
@@ -129,9 +135,7 @@ export function draftToText(
     parsed.name ? `Кличка: ${parsed.name}` : null,
     `Описание: ${parsed.description || "— не распознано"}`,
     parsed.landmarks ? `Ориентир: ${parsed.landmarks}` : null,
-    position.exact
-      ? "Место: указано вручную"
-      : `Место: ${district ? district.label : "центр города"} (примерно — можно уточнить)`,
+    place,
     `Дата: ${parsed.event_date ?? "сегодня"}`,
     parsed.contact_phone ? `Телефон: ${parsed.contact_phone}` : null,
     parsed.contact_telegram ? `Telegram: ${parsed.contact_telegram}` : null,
@@ -141,6 +145,12 @@ export function draftToText(
     lines.push("");
     lines.push("Контактов в тексте нет — без них опубликовать нельзя.");
   }
+  if (!position.hasPlace) {
+    lines.push("");
+    lines.push(
+      "Место не распознано — пришлите геолокацию или выберите его кнопкой, иначе заявка попадёт не туда."
+    );
+  }
   if (parsed.confidence === "low") {
     lines.push("");
     lines.push("ИИ не уверен, что это объявление о животном. Проверьте внимательно.");
@@ -148,12 +158,13 @@ export function draftToText(
   return lines.join("\n");
 }
 
-/** Кнопки выбора района: по три в ряд, чтобы помещались на телефоне. */
+/** Кнопки выбора места: по три в ряд, чтобы помещались на телефоне. */
 export function districtButtons(draftId: string) {
+  const places = commonDistricts();
   const rows: { text: string; callback_data: string }[][] = [];
-  for (let i = 0; i < DISTRICTS.length; i += 3) {
+  for (let i = 0; i < places.length; i += 3) {
     rows.push(
-      DISTRICTS.slice(i, i + 3).map((d) => ({
+      places.slice(i, i + 3).map((d) => ({
         text: d.label,
         callback_data: `d:${draftId}:${d.key}`,
       }))

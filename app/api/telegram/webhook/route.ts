@@ -99,25 +99,32 @@ function publishButtons(draft: ImportDraft): InlineButton[][] {
   }
 
   const hasContact = Boolean(parsed.contact_phone || parsed.contact_telegram);
-  const ready = parsed.report_type && hasContact && parsed.description.length >= 10;
+  // Без координат публиковать нельзя: заявка молча уехала бы в центр Бишкека,
+  // даже если объявление из другого города.
+  const hasPlace = draft.lat != null && draft.lng != null;
+  const ready =
+    parsed.report_type && hasContact && hasPlace && parsed.description.length >= 10;
   if (ready) {
     rows.push([{ text: "Опубликовать", callback_data: `p:${draft.id}` }]);
   }
   rows.push([
-    { text: "Уточнить место", callback_data: `l:${draft.id}` },
+    {
+      text: hasPlace ? "Уточнить место" : "Указать место",
+      callback_data: `l:${draft.id}`,
+    },
     { text: "Отменить", callback_data: `x:${draft.id}` },
   ]);
   return rows;
 }
 
 async function sendDraftCard(draft: ImportDraft, prefix?: string): Promise<void> {
-  const position = {
-    lat: draft.lat ?? 0,
-    lng: draft.lng ?? 0,
-    districtKey: draft.parsed.district,
-    exact: false,
-  };
-  const text = [prefix, draftToText(draft.parsed, position)]
+  const text = [
+    prefix,
+    draftToText(draft.parsed, {
+      hasPlace: draft.lat != null && draft.lng != null,
+      districtKey: draft.parsed.district,
+    }),
+  ]
     .filter(Boolean)
     .join("\n\n");
   await sendTelegramMessage(draft.tg_chat_id, text, publishButtons(draft));
@@ -223,8 +230,11 @@ async function handleMessage(message: TgMessage): Promise<void> {
     return;
   }
 
-  const district = findDistrict(parsed.district);
-  const [lat, lng] = districtCenter(district);
+  // Место ищем и по ключу от модели, и по всему тексту объявления:
+  // город часто стоит отдельной строкой («г. Токмок»).
+  const district = findDistrict(parsed.district) ?? findDistrict(text);
+  const center = districtCenter(district);
+  const [lat, lng] = center ?? [null, null];
   const draft = await saveDraft({
     tgUserId: userId,
     tgChatId: chatId,
@@ -284,6 +294,14 @@ async function publishDraft(draft: ImportDraft, chatId: number): Promise<void> {
     await sendTelegramMessage(chatId, "Сначала выберите тип заявки.");
     return;
   }
+  // Страховка на случай устаревшей кнопки: без места публиковать нельзя
+  if (draft.lat == null || draft.lng == null) {
+    await sendTelegramMessage(
+      chatId,
+      "Сначала укажите место — пришлите геолокацию или выберите его кнопкой."
+    );
+    return;
+  }
 
   const photos = await uploadPhotos(draft.photo_file_ids ?? []);
   const { id } = await createReport(
@@ -293,8 +311,8 @@ async function publishDraft(draft: ImportDraft, chatId: number): Promise<void> {
       name: parsed.name,
       description: parsed.description,
       landmarks: parsed.landmarks,
-      lat: draft.lat ?? 0,
-      lng: draft.lng ?? 0,
+      lat: draft.lat,
+      lng: draft.lng,
       photos,
       contact_phone: parsed.contact_phone,
       contact_telegram: parsed.contact_telegram,

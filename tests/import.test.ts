@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { normalizeAnnouncement } from "@/lib/ai/normalize";
 import { findDistrict, districtCenter, DISTRICTS } from "@/lib/districts";
 import { textHash } from "@/lib/import-draft";
-import { CITY_CENTER } from "@/lib/config";
 import { reportInputSchema } from "@/lib/validation";
 
 const good = {
@@ -97,7 +96,7 @@ describe("normalizeAnnouncement", () => {
   it("выдаёт данные, которые принимает reportInputSchema", () => {
     const r = normalizeAnnouncement(good);
     const district = findDistrict(r.district);
-    const [lat, lng] = districtCenter(district);
+    const [lat, lng] = districtCenter(district)!;
     const parsed = reportInputSchema.safeParse({
       report_type: r.report_type,
       animal_type: r.animal_type,
@@ -131,18 +130,41 @@ describe("findDistrict", () => {
     expect(findDistrict("Москва, Тверская")).toBeNull();
   });
 
-  it("для нераспознанного района берёт центр города", () => {
-    expect(districtCenter(null)).toEqual(CITY_CENTER);
+  it("не подставляет координаты для нераспознанного места", () => {
+    // Иначе объявление из другого города молча уедет на карту Бишкека
+    expect(districtCenter(null)).toBeNull();
+    expect(districtCenter(findDistrict("tokmok"))).toEqual([42.8421, 75.29]);
   });
 
-  it("у всех районов уникальные ключи и координаты внутри Бишкека", () => {
+  it("узнаёт города Кыргызстана, а не только районы Бишкека", () => {
+    expect(findDistrict("г. Токмок")?.key).toBe("tokmok");
+    expect(findDistrict("Кара-Балта")?.key).toBe("kara-balta");
+    expect(findDistrict("в Канте нашли собаку")?.key).toBe("kant");
+    expect(findDistrict("город Ош")?.key).toBe("osh");
+  });
+
+  it("не путает короткие названия с обычными словами", () => {
+    // «ош» не должно совпасть с «ошейником», «кант» — с «кантри»
+    expect(findDistrict("на нём был красный ошейник")).toBeNull();
+    expect(findDistrict("слушает кантри")).toBeNull();
+  });
+
+  it("находит город в реальном объявлении из Токмока", () => {
+    const text = `г. Токмок
+
+В ночь на 18 августа на ул. Бабаева потерялся щенок питбуля.
+На нем был красный поводок. Помогите найти. 0995544944`;
+    expect(findDistrict(text)?.key).toBe("tokmok");
+  });
+
+  it("у всех мест уникальные ключи и координаты внутри Кыргызстана", () => {
     const keys = DISTRICTS.map((d) => d.key);
     expect(new Set(keys).size).toBe(keys.length);
     for (const d of DISTRICTS) {
-      expect(d.center[0]).toBeGreaterThan(42.7);
-      expect(d.center[0]).toBeLessThan(43.0);
-      expect(d.center[1]).toBeGreaterThan(74.4);
-      expect(d.center[1]).toBeLessThan(74.8);
+      expect(d.center[0]).toBeGreaterThan(39.1);
+      expect(d.center[0]).toBeLessThan(43.3);
+      expect(d.center[1]).toBeGreaterThan(69.2);
+      expect(d.center[1]).toBeLessThan(80.3);
     }
   });
 });
