@@ -29,7 +29,11 @@ const inputClass =
 
 export default function Sightings({ report }: { report: Report }) {
   const [sightings, setSightings] = useState<Sighting[]>([]);
-  const [adding, setAdding] = useState(false);
+  // ?seen=1 — переход по кнопке «Я его видел» из ленты: сразу открываем форму
+  const [adding, setAdding] = useState(() =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("seen") === "1"
+  );
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [comment, setComment] = useState("");
   const today = new Date().toISOString().slice(0, 10);
@@ -115,7 +119,7 @@ export default function Sightings({ report }: { report: Report }) {
       {report.status === "active" && !adding && (
         <button
           onClick={() => setAdding(true)}
-          className="flex h-[50px] w-full items-center justify-center gap-2 rounded-[15px] bg-sight text-[15px] font-semibold text-white"
+          className="flex h-[50px] w-full items-center justify-center gap-2 rounded-[15px] bg-sight text-[15px] font-semibold text-on-accent"
         >
           <EyeIcon size={18} />
           Я его видел
@@ -150,7 +154,7 @@ export default function Sightings({ report }: { report: Report }) {
             <button
               onClick={submit}
               disabled={sending}
-              className="flex-1 rounded-[15px] bg-ink py-3.5 font-semibold text-white disabled:opacity-50"
+              className="flex-1 rounded-[15px] bg-ink py-3.5 font-semibold text-on-accent disabled:opacity-50"
             >
               {sending ? "Сохраняем…" : "Сохранить"}
             </button>

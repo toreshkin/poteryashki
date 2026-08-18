@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600&display=swap">
+  <style>
+    body { margin: 0; font-family: "Golos Text", "Segoe UI", system-ui, sans-serif; }
+    a { color: #c8452f; } a:hover { color: #a53724; }
+    .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</helmet>
+
+<div style="width: 920px; background: #f2eee8; padding: 40px; box-sizing: border-box; color: #23201c">
+
+  <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px">
+    <div style="font-family: Literata, Georgia, serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Карточка в ленте</div>
+    <div style="font-size: 14px; color: #6e675e; max-width: 620px; text-wrap: pretty">Главный рабочий экран: человек листает его, чтобы узнать своего питомца. Слева — как сейчас, справа — предложение.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px">
+
+    <!-- СЕЙЧАС -->
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #ffffff; border: 1.5px solid #e9e3da; font-size: 11.5px; font-weight: 600; color: #6e675e">Сейчас</span>
+      </div>
+
+      <div style="background: #faf8f5; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+
+        <!-- карточка 1:1 с FeedView -->
+        <div style="display: flex; gap: 12px; border-radius: 18px; border: 1px solid #efeae2; background: #ffffff; padding: 10px; box-shadow: 0 1px 2px rgba(35,32,28,.04)">
+          <div style="width: 88px; height: 88px; flex: none; border-radius: 13px; background: #f2eee8; display: flex; align-items: center; justify-content: center; color: #756f65">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="8.8" cy="10" r="1.6"/><path d="m4 17 4.7-4.2a2 2 0 0 1 2.7 0L16 17"/></svg>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: #fbeeea; color: #c8452f; font-size: 11.5px; font-weight: 600">
+                <span style="width: 6px; height: 6px; border-radius: 999px; background: #c8452f"></span>Потерялся
+              </span>
+              <span style="font-size: 11.5px; color: #756f65">Кошка</span>
+            </div>
+            <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -0.02em">Мурка</div>
+            <div class="clamp-2" style="font-size: 13px; line-height: 1.35; color: #6e675e">Белая кошка, на лапке бинт после сдачи крови. Домашняя, очень боится улицы.</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #756f65">
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Асанбай, Итальянский квартал</span>
+              <span style="flex: none">вчера</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; border-radius: 18px; border: 1px solid #efeae2; background: #ffffff; padding: 10px; box-shadow: 0 1px 2px rgba(35,32,28,.04)">
+          <div style="width: 88px; height: 88px; flex: none; border-radius: 13px; background: #f2eee8"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: #e9f3ec; color: #1b7f4e; font-size: 11.5px; font-weight: 600">
+                <span style="width: 6px; height: 6px; border-radius: 999px; background: #1b7f4e"></span>Найден
+              </span>
+              <span style="font-size: 11.5px; color: #756f65">Собака</span>
+            </div>
+            <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -0.02em">Собака</div>
+            <div class="clamp-2" style="font-size: 13px; line-height: 1.35; color: #6e675e">Рыжий пёс, среднего размера, синий ошейник. Ходит у школы третий день.</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: #756f65">
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Восток-5</span>
+              <span style="flex: none">14 дней назад</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; line-height: 1.45; color: #6e675e">
+        <li>Фото 88×88 — а именно по нему узнают питомца</li>
+        <li>«вчера» и «14 дней назад» выглядят одинаково: срочность не читается</li>
+        <li>Место обрезается в одну строку, расстояния до него нет</li>
+        <li>Чтобы сказать «я видел», нужно открыть карточку и пролистать вниз</li>
+      </ul>
+    </div>
+
+    <!-- ПРЕДЛОЖЕНИЕ -->
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #23201c; color: #ffffff; font-size: 11.5px; font-weight: 600">Предложение</span>
+      </div>
+
+      <div style="background: #faf8f5; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+
+        <div style="border-radius: 18px; border: 1px solid #efeae2; background: #ffffff; box-shadow: 0 1px 2px rgba(35,32,28,.04); overflow: hidden">
+          <div style="display: flex; gap: 12px; padding: 10px">
+            <div style="position: relative; width: 116px; height: 116px; flex: none">
+              <div style="width: 116px; height: 116px; border-radius: 14px; background: #f2eee8; display: flex; align-items: center; justify-content: center; color: #756f65">
+                <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="8.8" cy="10" r="1.6"/><path d="m4 17 4.7-4.2a2 2 0 0 1 2.7 0L16 17"/></svg>
+              </div>
+              <span style="position: absolute; left: 6px; bottom: 6px; display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(35,32,28,.82); color: #ffffff; font-size: 11px; font-weight: 600">
+                <span style="width: 6px; height: 6px; border-radius: 999px; background: #ff8f6b"></span>Вчера
+              </span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0; flex-grow: 1">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: #fbeeea; color: #c8452f; font-size: 11.5px; font-weight: 600">
+                  <span style="width: 6px; height: 6px; border-radius: 999px; background: #c8452f"></span>Потерялся
+                </span>
+                <span style="font-size: 11.5px; color: #756f65">Кошка</span>
+              </div>
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.02em">Мурка</div>
+              <div class="clamp-2" style="font-size: 13px; line-height: 1.35; color: #6e675e">Белая кошка, на лапке бинт после сдачи крови. Домашняя, очень боится улицы.</div>
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6e675e">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Асанбай</span>
+                <span style="color: #756f65">·</span>
+                <span style="flex: none; font-weight: 600; color: #23201c">1,2 км</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; padding: 0 10px 10px 10px">
+            <button style="flex-grow: 1; height: 40px; border-radius: 13px; border: 1.5px solid #e9e3da; background: #ffffff; font-family: inherit; font-size: 13.5px; font-weight: 600; color: #23201c; display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Я его видел
+            </button>
+            <button style="height: 40px; padding: 0 14px; border-radius: 13px; border: 1.5px solid #e9e3da; background: #ffffff; font-family: inherit; font-size: 13.5px; font-weight: 600; color: #23201c; display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/></svg>
+              Поделиться
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; border-radius: 18px; border: 1px solid #efeae2; background: #ffffff; padding: 10px; box-shadow: 0 1px 2px rgba(35,32,28,.04)">
+          <div style="position: relative; width: 116px; height: 116px; flex: none">
+            <div style="width: 116px; height: 116px; border-radius: 14px; background: #f2eee8"></div>
+            <span style="position: absolute; left: 6px; bottom: 6px; display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; background: rgba(35,32,28,.6); color: #ffffff; font-size: 11px; font-weight: 600">2 недели</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0; flex-grow: 1">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: #e9f3ec; color: #1b7f4e; font-size: 11.5px; font-weight: 600">
+                <span style="width: 6px; height: 6px; border-radius: 999px; background: #1b7f4e"></span>Найден
+              </span>
+              <span style="font-size: 11.5px; color: #756f65">Собака</span>
+            </div>
+            <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.02em">Рыжий пёс</div>
+            <div class="clamp-2" style="font-size: 13px; line-height: 1.35; color: #6e675e">Среднего размера, синий ошейник. Ходит у школы третий день.</div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6e675e">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Восток-5</span>
+              <span style="color: #756f65">·</span>
+              <span style="flex: none; font-weight: 600; color: #23201c">6,4 км</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; line-height: 1.45; color: #6e675e">
+        <li>Фото 116×116 — примету видно, не открывая карточку</li>
+        <li>Плашка давности на фото: свежее выделено тёплым, старое — приглушённым</li>
+        <li>Расстояние рядом с местом — первый вопрос читателя «это рядом со мной?»</li>
+        <li>«Я его видел» прямо в ленте: отметка о встрече в один тап</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

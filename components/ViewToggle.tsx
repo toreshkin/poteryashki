@@ -10,18 +10,18 @@ export default function ViewToggle({ floating = false }: { floating?: boolean })
   const isFeed = pathname === "/feed";
   const isMy = pathname === "/my";
   const telegram = useTelegramStatus();
-  const active = "bg-ink text-white";
+  const active = "bg-ink text-on-accent";
   const idle = "text-ink-2";
 
   return (
     <div
-      className={`flex items-center gap-[3px] rounded-full p-[3px] ${
-        floating ? "bg-white/95 shadow-[0_2px_10px_rgba(35,32,28,.12)]" : "bg-muted-tint"
+      className={`flex shrink-0 items-center gap-[3px] rounded-full p-[3px] ${
+        floating ? "bg-surface-glass shadow-[0_2px_10px_rgba(35,32,28,.12)]" : "bg-muted-tint"
       }`}
     >
       <Link
         href="/"
-        className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
+        className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold ${
           isFeed || isMy ? idle : active
         }`}
       >
@@ -30,7 +30,7 @@ export default function ViewToggle({ floating = false }: { floating?: boolean })
       </Link>
       <Link
         href="/feed"
-        className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
+        className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold ${
           isFeed ? active : idle
         }`}
       >
@@ -40,7 +40,7 @@ export default function ViewToggle({ floating = false }: { floating?: boolean })
       {telegram.available && (
         <Link
           href="/my"
-          className={`flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
+          className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold ${
             isMy ? active : idle
           }`}
         >

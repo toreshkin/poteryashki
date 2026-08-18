@@ -106,7 +106,7 @@ export default function AdminPage() {
   if (!authed) {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center gap-3.5 px-5">
-        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink text-white">
+        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink text-on-accent">
           <ShieldIcon size={22} />
         </span>
         <h1 className="font-serif text-2xl font-semibold tracking-tight">
@@ -123,7 +123,7 @@ export default function AdminPage() {
         {error && <p className="text-sm text-lost">{error}</p>}
         <button
           onClick={() => load(password)}
-          className="rounded-[15px] bg-ink py-3.5 font-semibold text-white"
+          className="rounded-[15px] bg-ink py-3.5 font-semibold text-on-accent"
         >
           Войти
         </button>
@@ -145,7 +145,7 @@ export default function AdminPage() {
     <main className="mx-auto w-full max-w-3xl space-y-5 px-4 py-5 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-on-accent">
             <ShieldIcon size={19} />
           </span>
           <div className="flex flex-col">
@@ -191,13 +191,13 @@ export default function AdminPage() {
             onClick={() => setTab(t.id)}
             className={`flex h-9 items-center gap-2 rounded-full px-3.5 text-[13.5px] font-semibold ${
               tab === t.id
-                ? "bg-ink text-white"
+                ? "bg-ink text-on-accent"
                 : "border-[1.5px] border-line bg-surface text-ink-2"
             }`}
           >
             {t.label}
             {t.badge ? (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-lost px-1.5 text-[11.5px] text-white">
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-lost px-1.5 text-[11.5px] text-on-accent">
                 {t.badge}
               </span>
             ) : null}
@@ -226,9 +226,9 @@ export default function AdminPage() {
               key={r.id}
               className={`flex flex-wrap items-center gap-4 rounded-2xl border p-3.5 ${
                 flagged && !hidden
-                  ? "border-[1.5px] border-[#F0D5CC] bg-[#FFF9F7]"
+                  ? "border-[1.5px] border-lost-line bg-lost-tint"
                   : hidden
-                    ? "border-line-soft bg-[#F7F4EF]"
+                    ? "border-line-soft bg-muted-card"
                     : "border-line-soft bg-surface"
               }`}
             >
@@ -315,7 +315,7 @@ export default function AdminPage() {
                 <button
                   onClick={() => act(r.id, "delete")}
                   aria-label="Удалить заявку"
-                  className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-lost text-white"
+                  className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-lost text-on-accent"
                 >
                   <TrashIcon size={17} />
                 </button>

@@ -146,13 +146,13 @@ export default function SimilarReports({
             </div>
 
             {strong && (
-              <div className="flex items-center gap-2.5 border-t border-[#DCEADF] bg-found-tint px-3.5 py-3">
+              <div className="flex items-center gap-2.5 border-t border-found-line bg-found-tint px-3.5 py-3">
                 <ScoreRing score={match.score} />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[13.5px] font-bold text-[#146039]">
+                  <span className="text-[13.5px] font-bold text-found-strong">
                     Совпадение {match.score}%
                   </span>
-                  <span className="text-pretty text-[12.5px] text-[#35704F]">
+                  <span className="text-pretty text-[12.5px] text-found">
                     {match.reason}
                   </span>
                 </div>

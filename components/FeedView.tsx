@@ -2,24 +2,33 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Filters from "@/components/Filters";
+import Filters, { DEFAULT_FILTERS, extraFilterCount } from "@/components/Filters";
 import ViewToggle from "@/components/ViewToggle";
 import EntryButtons from "@/components/EntryButtons";
 import StatusBadge from "@/components/StatusBadge";
 import { ANIMAL_TYPE_LABELS } from "@/lib/types";
 import { SITE_NAME } from "@/lib/config";
 import { initTelegram } from "@/lib/telegram";
-import { timeAgo } from "@/lib/filter";
+import { daysSince, FRESH_DAYS, shortAge } from "@/lib/filter";
+import { distanceKm, formatDistance } from "@/lib/geo";
 import { useAiStatus } from "@/components/useAiStatus";
+import { useNearby } from "@/components/useNearby";
 import { useReports } from "@/components/useReports";
 import PhotoThumb from "@/components/PhotoThumb";
+import ShareButton from "@/components/ShareButton";
 import {
   CloseIcon,
+  EyeIcon,
   ImageIcon,
+  MapPinIcon,
   PawIcon,
+  PlusIcon,
   SearchIcon,
   SparkleIcon,
 } from "@/components/Icons";
+
+/** Фото — главная примета, поэтому в ленте оно крупнее строки текста. */
+const PHOTO = 116;
 
 export default function FeedView() {
   const {
@@ -36,8 +45,13 @@ export default function FeedView() {
     error,
   } = useReports(100);
   const ai = useAiStatus();
+  const here = useNearby();
   const [aiBusy, setAiBusy] = useState(false);
   const [aiNote, setAiNote] = useState<string | null>(null);
+
+  // Пустой экран объясняет причину по-разному: сузили фильтры или в городе тихо
+  const filtersNarrowed =
+    query.trim() !== "" || extraFilterCount(filters) > 0 || filters.type !== "all";
 
   useEffect(() => {
     initTelegram();
@@ -87,9 +101,10 @@ export default function FeedView() {
     <div className="mx-auto min-h-dvh w-full max-w-lg pb-28">
       <div className="sticky top-0 z-10 border-b border-line-soft bg-paper pt-3.5">
         <div className="flex items-center justify-between gap-2.5 px-3.5">
-          <span className="flex items-center gap-1.5">
+          {/* Название прячется, когда трём вкладкам не хватает ширины */}
+          <span className="flex min-w-0 items-center gap-1.5">
             <PawIcon size={19} />
-            <span className="font-serif text-[15px] font-semibold tracking-tight">
+            <span className="truncate font-serif text-[15px] font-semibold tracking-tight">
               {SITE_NAME}
             </span>
           </span>
@@ -138,64 +153,149 @@ export default function FeedView() {
           <p className="py-10 text-center text-ink-3">Загружаем…</p>
         )}
         {error && <p className="py-10 text-center text-lost">{error}</p>}
+        {/* Пустая лента — частый первый экран у молодого сервиса,
+            поэтому объясняем причину и даём выход, а не сообщаем о пустоте */}
         {!loading && !error && visible.length === 0 && (
-          <p className="text-balance py-10 text-center text-ink-3">
-            По выбранным условиям заявок нет
-          </p>
+          <div className="flex flex-col items-center gap-3.5 px-4 py-10 text-center">
+            <span className="flex h-[62px] w-[62px] items-center justify-center rounded-[20px] bg-muted-tint text-ink-3">
+              <PawIcon size={30} />
+            </span>
+            <div className="space-y-1.5">
+              <h2 className="font-serif text-[19px] font-semibold tracking-tight">
+                Здесь пока пусто
+              </h2>
+              <p className="text-pretty text-[13.5px] leading-relaxed text-ink-2">
+                {filtersNarrowed
+                  ? "По выбранным условиям заявок нет. Попробуйте снять часть фильтров."
+                  : "Заявок пока нет — это хорошая новость. Если ищете питомца, начните первым."}
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link
+                href="/report?type=lost"
+                className="flex h-11 items-center gap-2 rounded-[14px] bg-lost px-[18px] text-sm font-semibold text-on-accent"
+              >
+                <PlusIcon size={17} />
+                Подать заявку
+              </Link>
+              {filtersNarrowed && (
+                <button
+                  onClick={() => {
+                    setFilters(DEFAULT_FILTERS);
+                    setQuery("");
+                  }}
+                  className="flex h-11 items-center rounded-[14px] border-[1.5px] border-line bg-surface px-[18px] text-sm font-semibold"
+                >
+                  Сбросить фильтры
+                </button>
+              )}
+            </div>
+          </div>
         )}
 
-        {visible.map((r) => (
-          <Link
-            key={r.id}
-            href={`/pet/${r.id}`}
-            className={`flex gap-3 rounded-[18px] border p-2.5 ${
-              r.status === "resolved"
-                ? "border-line-soft bg-[#F7F4EF]"
-                : "border-line-soft bg-surface shadow-[0_1px_2px_rgba(35,32,28,.04)]"
-            }`}
-          >
-            {r.photos.length > 0 ? (
-              <PhotoThumb
-                src={r.photos[0]}
-                alt={`Фото: ${r.name ?? ANIMAL_TYPE_LABELS[r.animal_type]}`}
-                className={`shrink-0 rounded-[13px] object-cover ${
-                  r.status === "resolved" ? "opacity-70" : ""
-                }`}
-                style={{ width: 88, height: 88 }}
-              />
-            ) : (
-              <div
-                className="flex shrink-0 items-center justify-center rounded-[13px] bg-muted-tint text-ink-3"
-                style={{ width: 88, height: 88 }}
-              >
-                <ImageIcon size={30} />
-              </div>
-            )}
+        {visible.map((r) => {
+          const resolved = r.status === "resolved";
+          const fresh = !resolved && daysSince(r.event_date) <= FRESH_DAYS;
+          const distance = here
+            ? distanceKm(here[0], here[1], r.lat, r.lng)
+            : null;
 
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <StatusBadge report={r} size="sm" />
-                <span className="text-[11.5px] text-ink-3">
-                  {ANIMAL_TYPE_LABELS[r.animal_type]}
-                </span>
-              </div>
-              <div
-                className={`truncate text-[16.5px] font-semibold tracking-tight ${
-                  r.status === "resolved" ? "text-ink-2" : ""
-                }`}
-              >
-                {r.name ?? ANIMAL_TYPE_LABELS[r.animal_type]}
-              </div>
-              <p className="clamp-2 text-[13px] leading-snug text-ink-2">
-                {r.description}
-              </p>
-              <div className="flex items-center justify-between gap-2 text-xs text-ink-3">
-                <span className="truncate">{r.landmarks ?? ""}</span>
-                <span className="shrink-0">{timeAgo(r.event_date)}</span>
-              </div>
+          return (
+            <div
+              key={r.id}
+              className={`overflow-hidden rounded-[18px] border ${
+                resolved
+                  ? "border-line-soft bg-muted-card"
+                  : "border-line-soft bg-surface shadow-[0_1px_2px_rgba(35,32,28,.04)]"
+              }`}
+            >
+              <Link href={`/pet/${r.id}`} className="flex gap-3 p-2.5">
+                <div className="relative shrink-0" style={{ width: PHOTO, height: PHOTO }}>
+                  {r.photos.length > 0 ? (
+                    <PhotoThumb
+                      src={r.photos[0]}
+                      alt={`Фото: ${r.name ?? ANIMAL_TYPE_LABELS[r.animal_type]}`}
+                      className={`rounded-[14px] object-cover ${resolved ? "opacity-70" : ""}`}
+                      style={{ width: PHOTO, height: PHOTO }}
+                    />
+                  ) : (
+                    <div
+                      className="flex items-center justify-center rounded-[14px] bg-muted-tint text-ink-3"
+                      style={{ width: PHOTO, height: PHOTO }}
+                    >
+                      <ImageIcon size={32} />
+                    </div>
+                  )}
+                  {/* Давность прямо на фото: свежее выделяем, старое приглушаем */}
+                  {!resolved && (
+                    // Плашка лежит на фотографии, а не на фоне приложения,
+                    // поэтому остаётся тёмной в обеих темах
+                    <span
+                      className={`absolute bottom-1.5 left-1.5 inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-semibold text-white ${
+                        fresh ? "bg-[#171614]/85" : "bg-[#171614]/60"
+                      }`}
+                    >
+                      {fresh && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#ff8f6b]" />
+                      )}
+                      {shortAge(r.event_date)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <StatusBadge report={r} size="sm" />
+                    {/* Без клички заголовком служит вид — не повторяем его рядом */}
+                    {r.name && (
+                      <span className="text-[11.5px] text-ink-3">
+                        {ANIMAL_TYPE_LABELS[r.animal_type]}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className={`truncate text-[17px] font-semibold tracking-tight ${
+                      resolved ? "text-ink-2" : ""
+                    }`}
+                  >
+                    {r.name ?? ANIMAL_TYPE_LABELS[r.animal_type]}
+                  </div>
+                  <p className="clamp-2 text-[13px] leading-snug text-ink-2">
+                    {r.description}
+                  </p>
+                  {(r.landmarks || distance !== null) && (
+                    <div className="flex items-center gap-1.5 text-xs text-ink-2">
+                      <MapPinIcon size={14} className="shrink-0 text-ink-3" />
+                      <span className="truncate">{r.landmarks ?? "Место на карте"}</span>
+                      {distance !== null && (
+                        <>
+                          <span className="text-ink-3">·</span>
+                          <span className="shrink-0 font-semibold text-ink">
+                            {formatDistance(distance)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Link>
+
+              {/* Отметка о встрече — главное действие прохожего, в один тап */}
+              {!resolved && (
+                <div className="flex gap-2 px-2.5 pb-2.5">
+                  <Link
+                    href={`/pet/${r.id}?seen=1`}
+                    className="flex h-10 flex-1 items-center justify-center gap-2 rounded-[13px] border-[1.5px] border-line bg-surface text-[13.5px] font-semibold"
+                  >
+                    <EyeIcon size={16} />
+                    Я его видел
+                  </Link>
+                  <ShareButton report={r} iconOnly />
+                </div>
+              )}
             </div>
-          </Link>
-        ))}
+          );
+        })}
 
         {hasMore && !loading && !error && (
           <button

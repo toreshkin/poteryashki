@@ -39,7 +39,7 @@ export default function MapView() {
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[500] flex flex-col gap-2.5 pt-3.5">
         <div className="pointer-events-auto flex items-center justify-between gap-2.5 px-3.5">
-          <span className="flex h-[34px] items-center gap-1.5 rounded-full bg-white/95 pl-2.5 pr-3.5 shadow-[0_2px_10px_rgba(35,32,28,.12)]">
+          <span className="flex h-[34px] items-center gap-1.5 rounded-full bg-surface-glass pl-2.5 pr-3.5 shadow-[0_2px_10px_rgba(35,32,28,.12)]">
             <PawIcon size={19} />
             <span className="font-serif text-[15px] font-semibold tracking-tight">
               {SITE_NAME}

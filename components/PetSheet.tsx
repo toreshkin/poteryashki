@@ -44,7 +44,7 @@ export function ContactLinks({
       {phone && (
         <a
           href={`tel:${phone}`}
-          className="flex flex-1 items-center justify-center gap-2 rounded-[15px] bg-ink px-4 text-[15px] font-semibold text-white"
+          className="flex flex-1 items-center justify-center gap-2 rounded-[15px] bg-ink px-4 text-[15px] font-semibold text-on-accent"
           style={{ height: compact ? 52 : 56 }}
         >
           <PhoneIcon size={19} />
@@ -142,7 +142,7 @@ function ComplaintForm({
         <button
           onClick={submit}
           disabled={sending}
-          className="flex-1 rounded-[14px] bg-lost px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="flex-1 rounded-[14px] bg-lost px-4 py-3 text-sm font-semibold text-on-accent disabled:opacity-50"
         >
           Отправить жалобу
         </button>

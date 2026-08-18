@@ -42,9 +42,9 @@ function Chip({
       onClick={onClick}
       className={`flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition-colors ${
         active
-          ? "bg-ink text-white"
+          ? "bg-ink text-on-accent"
           : floating
-            ? "bg-white/95 text-ink shadow-[0_2px_8px_rgba(35,32,28,.1)]"
+            ? "bg-surface-glass text-ink shadow-[0_2px_8px_rgba(35,32,28,.1)]"
             : "border-[1.5px] border-line bg-surface text-ink"
       }`}
     >
@@ -219,7 +219,7 @@ export default function Filters({
                 </button>
                 <button
                   onClick={() => setOpen(false)}
-                  className="flex-1 rounded-2xl bg-ink py-3.5 font-semibold text-white"
+                  className="flex-1 rounded-2xl bg-ink py-3.5 font-semibold text-on-accent"
                 >
                   Показать
                 </button>

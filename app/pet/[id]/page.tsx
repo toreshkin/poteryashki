@@ -113,7 +113,7 @@ export default async function PetPage({ params }: PageProps<"/pet/[id]">) {
         <div className="absolute inset-x-3.5 top-3.5 flex items-center justify-between">
           <Link
             href="/"
-            className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-white/95 text-ink"
+            className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-surface-glass text-ink"
             aria-label="Назад к карте"
           >
             <ChevronLeftIcon size={18} />

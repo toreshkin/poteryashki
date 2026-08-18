@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600&display=swap">
+  <style>
+    body { margin: 0; font-family: "Golos Text", "Segoe UI", system-ui, sans-serif; }
+    a { color: #c8452f; } a:hover { color: #a53724; }
+    .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</helmet>
+
+<div style="width: 920px; background: #f2eee8; padding: 40px; box-sizing: border-box; color: #23201c">
+
+  <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px">
+    <div style="font-family: Literata, Georgia, serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Тёмная тема</div>
+    <div style="font-size: 14px; color: #6e675e; max-width: 640px; text-wrap: pretty">Сейчас её нет: сайт всегда светлый. Внутри Telegram у многих тёмное оформление, и приложение вспыхивает белым посреди тёмного клиента. Ниже — та же лента в бумажной и ночной палитре: токены те же, меняются только значения.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+
+    <!-- Светлая -->
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #ffffff; border: 1.5px solid #e9e3da; font-size: 11.5px; font-weight: 600; color: #6e675e">Бумажная (есть)</span>
+
+      <div style="background: #faf8f5; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <span style="display: inline-flex; align-items: center; gap: 7px">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="#23201c"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"/><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"/><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"/><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"/></svg>
+            <span style="font-family: Literata, Georgia, serif; font-size: 15px; font-weight: 600; letter-spacing: -0.02em">Потеряшки</span>
+          </span>
+          <span style="display: inline-flex; gap: 3px; padding: 3px; border-radius: 999px; background: #f2eee8">
+            <span style="height: 28px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; background: #23201c; color: #ffffff; font-size: 13px; font-weight: 600">Карта</span>
+            <span style="height: 28px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; color: #6e675e; font-size: 13px; font-weight: 600">Лента</span>
+          </span>
+        </div>
+
+        <div style="display: flex; gap: 12px; border-radius: 18px; border: 1px solid #efeae2; background: #ffffff; padding: 10px; box-shadow: 0 1px 2px rgba(35,32,28,.04)">
+          <div style="width: 88px; height: 88px; flex: none; border-radius: 13px; background: #f2eee8"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+            <span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: #fbeeea; color: #c8452f; font-size: 11.5px; font-weight: 600">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #c8452f"></span>Потерялся
+            </span>
+            <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -0.02em">Мурка</div>
+            <div class="clamp-2" style="font-size: 13px; line-height: 1.35; color: #6e675e">Белая кошка, на лапке бинт. Домашняя, боится улицы.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px">
+          <span style="flex-grow: 1; height: 48px; border-radius: 16px; background: #c8452f; color: #ffffff; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(200,69,47,.3)">Потерялся</span>
+          <span style="flex-grow: 1; height: 48px; border-radius: 16px; background: #1b7f4e; color: #ffffff; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(27,127,78,.3)">Нашёл</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Тёмная -->
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #23201c; color: #ffffff; font-size: 11.5px; font-weight: 600">Ночная (предложение)</span>
+
+      <div style="background: #171614; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <span style="display: inline-flex; align-items: center; gap: 7px">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="#f2ede4"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"/><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"/><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"/><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"/></svg>
+            <span style="font-family: Literata, Georgia, serif; font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: #f2ede4">Потеряшки</span>
+          </span>
+          <span style="display: inline-flex; gap: 3px; padding: 3px; border-radius: 999px; background: #23211e">
+            <span style="height: 28px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; background: #f2ede4; color: #171614; font-size: 13px; font-weight: 600">Карта</span>
+            <span style="height: 28px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 999px; color: #a49c90; font-size: 13px; font-weight: 600">Лента</span>
+          </span>
+        </div>
+
+        <div style="display: flex; gap: 12px; border-radius: 18px; border: 1px solid #2e2b26; background: #1f1d1a; padding: 10px">
+          <div style="width: 88px; height: 88px; flex: none; border-radius: 13px; background: #2a2723"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+            <span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: #3a221d; color: #ff8b6f; font-size: 11.5px; font-weight: 600">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #ff8b6f"></span>Потерялся
+            </span>
+            <div style="font-size: 16.5px; font-weight: 600; letter-spacing: -0.02em; color: #f2ede4">Мурка</div>
+            <div class="clamp-2" style="font-size: 13px; line-height: 1.35; color: #a49c90">Белая кошка, на лапке бинт. Домашняя, боится улицы.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px">
+          <span style="flex-grow: 1; height: 48px; border-radius: 16px; background: #de6047; color: #171614; font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px">Потерялся</span>
+          <span style="flex-grow: 1; height: 48px; border-radius: 16px; background: #35a26a; color: #171614; font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px">Нашёл</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 26px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #ffffff; border: 1px solid #e9e3da; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #756f65">Фон</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #faf8f5; border: 1px solid #e9e3da"></span>#faf8f5</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #171614"></span>#171614</div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #e9e3da; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #756f65">Карточка</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #ffffff; border: 1px solid #e9e3da"></span>#ffffff</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #1f1d1a"></span>#1f1d1a</div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #e9e3da; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #756f65">Потерялся</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #c8452f"></span>#c8452f</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #ff8b6f"></span>#ff8b6f</div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #e9e3da; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #756f65">Найден</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #1b7f4e"></span>#1b7f4e</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px"><span style="width: 18px; height: 18px; border-radius: 6px; background: #35a26a"></span>#35a26a</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 16px; font-size: 12.5px; line-height: 1.5; color: #6e675e; max-width: 720px; text-wrap: pretty">
+    Статусные цвета в темноте приходится осветлять: на #1f1d1a исходный #c8452f даёт контраст около 3,4:1 — ниже нормы для текста. Осветлённые #ff8b6f и #35a26a проходят AA, оставаясь узнаваемыми. Метки на карте при этом сохраняют исходные цвета: карта светлая в обеих темах.
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -15,7 +15,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/"
-        className="rounded-[15px] bg-ink px-6 py-3.5 text-sm font-semibold text-white"
+        className="rounded-[15px] bg-ink px-6 py-3.5 text-sm font-semibold text-on-accent"
       >
         К карте
       </Link>

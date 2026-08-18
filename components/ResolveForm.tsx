@@ -72,7 +72,7 @@ export default function ResolveForm({
         <button
           onClick={submit}
           disabled={sending || code.length < 6}
-          className="flex-1 rounded-[15px] bg-ink py-3.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="flex-1 rounded-[15px] bg-ink py-3.5 text-sm font-semibold text-on-accent disabled:opacity-50"
         >
           {sending ? "Проверяем…" : "Закрыть заявку"}
         </button>

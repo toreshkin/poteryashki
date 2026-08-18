@@ -42,7 +42,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#faf8f5",
+  // Цвет системной панели повторяет фон темы (--paper в globals.css)
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf8f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#171614" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

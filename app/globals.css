@@ -11,16 +11,95 @@
   --line: #e9e3da;
   --line-soft: #efeae2;
   --muted-tint: #f2eee8;
+  /* Приглушённая карточка закрытой заявки */
+  --muted-card: #f7f4ef;
+  /* Текст на заливке акцентным цветом (кнопки, метки) */
+  --on-accent: #ffffff;
+  /* Полупрозрачная бумага: плашки поверх карты и градиент под кнопками */
+  --paper-fade: rgba(250, 248, 245, 0.96);
+  --surface-glass: rgba(255, 255, 255, 0.95);
 
   /* Статусы — одинаковая насыщенность, разный тон */
   --lost: #c8452f;
   --lost-tint: #fbeeea;
+  --lost-line: #f0d5cc;
   --found: #1b7f4e;
   --found-tint: #e9f3ec;
+  --found-line: #dceadf;
+  --found-strong: #146039;
   --sight: #b4741a;
   --sight-tint: #fdf6ea;
   --ai: #6b4fbb;
   --ai-tint: #f0ebfb;
+
+  color-scheme: light;
+}
+
+/*
+ * Ночная палитра. Приложение живёт внутри Telegram, где у многих тёмное
+ * оформление, и светлый лист бьёт по глазам. Статусные цвета осветлены:
+ * исходные #c8452f и #1b7f4e на тёмной карточке дают около 3,4:1 —
+ * ниже AA; #ff8b6f и #35a26a дают 7,4:1 и 5,2:1.
+ * Тема включается системной настройкой или темой Telegram (data-theme).
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #171614;
+    --surface: #1f1d1a;
+    --ink: #f2ede4;
+    --ink-2: #a49c90;
+    --ink-3: #938b7f;
+    --line: #35312b;
+    --line-soft: #2e2b26;
+    --muted-tint: #2a2723;
+    --muted-card: #242220;
+    --on-accent: #171614;
+    --paper-fade: rgba(23, 22, 20, 0.96);
+    --surface-glass: rgba(31, 29, 26, 0.95);
+
+    --lost: #ff8b6f;
+    --lost-tint: #3a221d;
+    --lost-line: #4d2c24;
+    --found: #35a26a;
+    --found-tint: #16301f;
+    --found-line: #204630;
+    --found-strong: #7fd3a4;
+    --sight: #dda34a;
+    --sight-tint: #33260f;
+    --ai: #b39ef0;
+    --ai-tint: #262038;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #171614;
+  --surface: #1f1d1a;
+  --ink: #f2ede4;
+  --ink-2: #a49c90;
+  --ink-3: #938b7f;
+  --line: #35312b;
+  --line-soft: #2e2b26;
+  --muted-tint: #2a2723;
+  --muted-card: #242220;
+  --on-accent: #171614;
+  --paper-fade: rgba(23, 22, 20, 0.96);
+  --surface-glass: rgba(31, 29, 26, 0.95);
+
+  --lost: #ff8b6f;
+  --lost-tint: #3a221d;
+  --lost-line: #4d2c24;
+  --found: #35a26a;
+  --found-tint: #16301f;
+  --found-line: #204630;
+  --found-strong: #7fd3a4;
+  --sight: #dda34a;
+  --sight-tint: #33260f;
+  --ai: #b39ef0;
+  --ai-tint: #262038;
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -32,10 +111,16 @@
   --color-line: var(--line);
   --color-line-soft: var(--line-soft);
   --color-muted-tint: var(--muted-tint);
+  --color-muted-card: var(--muted-card);
+  --color-on-accent: var(--on-accent);
+  --color-surface-glass: var(--surface-glass);
   --color-lost: var(--lost);
   --color-lost-tint: var(--lost-tint);
+  --color-lost-line: var(--lost-line);
   --color-found: var(--found);
   --color-found-tint: var(--found-tint);
+  --color-found-line: var(--found-line);
+  --color-found-strong: var(--found-strong);
   --color-sight: var(--sight);
   --color-sight-tint: var(--sight-tint);
   --color-ai: var(--ai);
@@ -62,8 +147,10 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  /* Белый контур отделяет метку от карты в обеих темах, а вот значок
+     внутри следует за заливкой: в ночной палитре она светлая. */
   border: 2.5px solid #fff;
-  color: #fff;
+  color: var(--on-accent);
   box-shadow: 0 4px 12px rgba(35, 32, 28, 0.28);
 }
 .pin--lost {
@@ -83,9 +170,23 @@ body {
 }
 .pin--cluster {
   background: var(--ink);
+  color: var(--on-accent);
   font-weight: 700;
   font-size: 14px;
   font-family: var(--font-sans, sans-serif);
+}
+
+/* Возраст заявки читается размером и насыщенностью метки:
+   свежую окружает ореол, давняя отходит на второй план. */
+.pin--fresh.pin--lost {
+  box-shadow: 0 4px 12px rgba(35, 32, 28, 0.28), 0 0 0 7px rgba(200, 69, 47, 0.2);
+}
+.pin--fresh.pin--found {
+  box-shadow: 0 4px 12px rgba(35, 32, 28, 0.28), 0 0 0 7px rgba(27, 127, 78, 0.2);
+}
+.pin--faded {
+  opacity: 0.62;
+  box-shadow: 0 2px 8px rgba(35, 32, 28, 0.18);
 }
 
 /* Видимый фокус для клавиатуры: компоненты гасят outline у инпутов,
@@ -106,6 +207,37 @@ body {
 .leaflet-control-attribution {
   font-size: 10px;
   background: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* В ночной теме светлые плитки слепят — инвертируем их в тёмную карту.
+   Метки лежат в другом слое и сохраняют свои цвета. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.92) saturate(0.6);
+  }
+  :root:not([data-theme="light"]) .leaflet-container {
+    background: #1c1a17;
+  }
+  :root:not([data-theme="light"]) .leaflet-control-attribution {
+    background: rgba(23, 22, 20, 0.75) !important;
+    color: #a49c90;
+  }
+  :root:not([data-theme="light"]) .leaflet-control-attribution a {
+    color: #c3bbae;
+  }
+}
+:root[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) saturate(0.6);
+}
+:root[data-theme="dark"] .leaflet-container {
+  background: #1c1a17;
+}
+:root[data-theme="dark"] .leaflet-control-attribution {
+  background: rgba(23, 22, 20, 0.75) !important;
+  color: #a49c90;
+}
+:root[data-theme="dark"] .leaflet-control-attribution a {
+  color: #c3bbae;
 }
 /* Поднимаем контролы над кнопками «Потерялся / Нашёл» */
 .leaflet-bottom.leaflet-right {

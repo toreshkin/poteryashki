@@ -8,6 +8,8 @@ interface TelegramWebApp {
   ready: () => void;
   expand: () => void;
   colorScheme: "light" | "dark";
+  /** Вне Telegram скрипт всё равно создаёт объект, но platform = "unknown". */
+  platform?: string;
   initData?: string;
   initDataUnsafe?: {
     user?: { username?: string; first_name?: string };
@@ -35,6 +37,14 @@ export function initTelegram(): string | null {
   if (!tg) return null;
   tg.ready();
   tg.expand();
+  // Тема Telegram может отличаться от системной — следуем за клиентом,
+  // иначе приложение вспыхивает белым внутри тёмного мессенджера.
+  // Только внутри настоящего Telegram: в обычном браузере скрипт тоже
+  // создаёт WebApp и всегда рапортует светлую тему, перебивая системную.
+  const insideTelegram = Boolean(tg.platform && tg.platform !== "unknown");
+  if (insideTelegram && (tg.colorScheme === "dark" || tg.colorScheme === "light")) {
+    document.documentElement.dataset.theme = tg.colorScheme;
+  }
   const username = tg.initDataUnsafe?.user?.username;
   return username ? `@${username}` : null;
 }

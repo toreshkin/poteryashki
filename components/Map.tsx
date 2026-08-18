@@ -9,22 +9,30 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import { CITY_CENTER, CITY_ZOOM } from "@/lib/config";
 import { Report } from "@/lib/types";
 import { animalIconMarkup, CHECK_MARKUP } from "@/components/Icons";
+import { daysSince, FRESH_DAYS } from "@/lib/filter";
 
 function markerIcon(report: Report): L.DivIcon {
-  const kind =
-    report.status === "resolved"
-      ? "resolved"
-      : report.report_type === "lost"
-        ? "lost"
-        : "found";
-  const size = report.status === "resolved" ? 36 : 42;
-  const inner =
-    report.status === "resolved"
-      ? CHECK_MARKUP
-      : animalIconMarkup(report.animal_type, 21);
+  const resolved = report.status === "resolved";
+  const kind = resolved
+    ? "resolved"
+    : report.report_type === "lost"
+      ? "lost"
+      : "found";
+
+  // Возраст заявки виден без клика: свежая крупнее и с ореолом,
+  // давняя мельче и приглушённее — искать нужно прежде всего свежее.
+  const days = daysSince(report.event_date);
+  const fresh = !resolved && days <= FRESH_DAYS;
+  const stale = !resolved && days > 30;
+  const size = resolved || stale ? 36 : 42;
+  const age = fresh ? " pin--fresh" : stale ? " pin--faded" : "";
+
+  const inner = resolved
+    ? CHECK_MARKUP
+    : animalIconMarkup(report.animal_type, size === 42 ? 21 : 18);
   return L.divIcon({
     className: "",
-    html: `<div class="pin pin--${kind}" style="width:${size}px;height:${size}px">${inner}</div>`,
+    html: `<div class="pin pin--${kind}${age}" style="width:${size}px;height:${size}px">${inner}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -77,7 +85,7 @@ function LocateControl() {
     button.type = "button";
     button.setAttribute("aria-label", "Моё местоположение");
     button.className =
-      "flex h-11 w-11 items-center justify-center rounded-[14px] bg-white text-ink shadow-[0_3px_14px_rgba(35,32,28,.18)]";
+      "flex h-11 w-11 items-center justify-center rounded-[14px] bg-surface text-ink shadow-[0_3px_14px_rgba(35,32,28,.18)]";
     button.innerHTML = `<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3.2M12 17.8V21M21 12h-3.2M6.2 12H3"/></svg>`;
 
     const control = new L.Control({ position: "bottomright" });

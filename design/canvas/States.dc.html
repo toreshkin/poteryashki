@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600&display=swap">
+  <style>
+    body { margin: 0; font-family: "Golos Text", "Segoe UI", system-ui, sans-serif; }
+    a { color: #c8452f; } a:hover { color: #a53724; }
+  </style>
+</helmet>
+
+<div style="width: 920px; background: #f2eee8; padding: 40px; box-sizing: border-box; color: #23201c">
+
+  <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px">
+    <div style="font-family: Literata, Georgia, serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Пустой экран</div>
+    <div style="font-size: 14px; color: #6e675e; max-width: 640px; text-wrap: pretty">Сервис молодой, и пустая лента — это то, что увидит половина первых посетителей. Сейчас она сообщает о пустоте и оставляет человека в тупике.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #ffffff; border: 1.5px solid #e9e3da; font-size: 11.5px; font-weight: 600; color: #6e675e">Сейчас</span>
+      <div style="background: #faf8f5; border-radius: 22px; padding: 16px; min-height: 300px; display: flex; align-items: center; justify-content: center">
+        <div style="font-size: 15px; color: #756f65; text-align: center; text-wrap: balance; max-width: 260px">По выбранным условиям заявок нет</div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; line-height: 1.45; color: #6e675e">
+        <li>Констатация без выхода: человек не знает, что делать дальше</li>
+        <li>Не отличает «фильтры слишком узкие» от «в городе пока пусто»</li>
+      </ul>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #23201c; color: #ffffff; font-size: 11.5px; font-weight: 600">Предложение</span>
+      <div style="background: #faf8f5; border-radius: 22px; padding: 16px; min-height: 300px; display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center; text-align: center">
+        <span style="width: 62px; height: 62px; border-radius: 20px; background: #f2eee8; display: inline-flex; align-items: center; justify-content: center; color: #756f65">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"/><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"/><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"/><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"/></svg>
+        </span>
+        <div style="display: flex; flex-direction: column; gap: 6px; max-width: 300px">
+          <div style="font-family: Literata, Georgia, serif; font-size: 19px; font-weight: 600; letter-spacing: -0.02em">Здесь пока пусто</div>
+          <div style="font-size: 13.5px; line-height: 1.45; color: #6e675e; text-wrap: pretty">За неделю в Бишкеке ни одной заявки такого вида. Это хорошая новость — но если ищете питомца, начните первым.</div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <span style="height: 44px; padding: 0 18px; border-radius: 14px; background: #c8452f; color: #ffffff; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Подать заявку
+          </span>
+          <span style="height: 44px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #e9e3da; background: #ffffff; color: #23201c; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center">Сбросить фильтры</span>
+        </div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; line-height: 1.45; color: #6e675e">
+        <li>Объясняет причину и даёт два выхода: подать заявку или ослабить фильтр</li>
+        <li>Тон спокойный: пустая карта — это не поломка</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="height: 1px; background: #e2dcd2; margin: 34px 0"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 22px">
+    <div style="font-family: Literata, Georgia, serif; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Метки на карте</div>
+    <div style="font-size: 14px; color: #6e675e; max-width: 640px; text-wrap: pretty">Метки уже различаются формой и цветом, но не возрастом. Свежая пропажа и заявка двухмесячной давности выглядят одинаково — хотя искать нужно прежде всего свежее.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #ffffff; border: 1.5px solid #e9e3da; font-size: 11.5px; font-weight: 600; color: #6e675e">Сейчас</span>
+      <div style="background: #ede8de; border-radius: 22px; padding: 22px; display: flex; align-items: center; gap: 22px; justify-content: center">
+        <span style="width: 42px; height: 42px; border-radius: 999px; border: 2.5px solid #fff; background: #c8452f; box-shadow: 0 4px 12px rgba(35,32,28,.28); display: inline-flex; align-items: center; justify-content: center; color: #fff">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"/><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"/><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"/><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"/></svg>
+        </span>
+        <span style="width: 42px; height: 42px; border-radius: 999px; border: 2.5px solid #fff; background: #c8452f; box-shadow: 0 4px 12px rgba(35,32,28,.28); display: inline-flex; align-items: center; justify-content: center; color: #fff">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"/><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"/><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"/><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"/></svg>
+        </span>
+        <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: #6e675e">
+          <span>Пропал сегодня</span>
+          <span>Пропал 2 месяца назад</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #23201c; color: #ffffff; font-size: 11.5px; font-weight: 600">Предложение</span>
+      <div style="background: #ede8de; border-radius: 22px; padding: 22px; display: flex; align-items: center; gap: 22px; justify-content: center">
+        <span style="position: relative; display: inline-flex">
+          <span style="position: absolute; inset: -7px; border-radius: 999px; background: rgba(200,69,47,.18)"></span>
+          <span style="position: relative; width: 42px; height: 42px; border-radius: 999px; border: 2.5px solid #fff; background: #c8452f; box-shadow: 0 4px 12px rgba(35,32,28,.28); display: inline-flex; align-items: center; justify-content: center; color: #fff">
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"/><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"/><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"/><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"/></svg>
+          </span>
+        </span>
+        <span style="width: 36px; height: 36px; border-radius: 999px; border: 2.5px solid #fff; background: #d9a89d; box-shadow: 0 2px 8px rgba(35,32,28,.18); display: inline-flex; align-items: center; justify-content: center; color: #fff">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><ellipse cx="6.6" cy="9" rx="2.1" ry="2.7"/><ellipse cx="11.4" cy="6.9" rx="2.2" ry="2.9"/><ellipse cx="16.6" cy="9.4" rx="2.1" ry="2.7"/><path d="M11.6 12.2c-3.1 0-5.4 2.2-5.4 4.5 0 1.7 1.3 2.8 3 2.8 1 0 1.6-.4 2.4-.4s1.4.4 2.4.4c1.7 0 3-1.1 3-2.8 0-2.3-2.3-4.5-5.4-4.5Z"/></svg>
+        </span>
+        <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: #6e675e">
+          <span>Свежая: ореол и полный размер</span>
+          <span>Старая: меньше и приглушённее</span>
+        </div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; line-height: 1.45; color: #6e675e">
+        <li>Возраст читается размером и насыщенностью, цвет статуса не трогаем</li>
+        <li>Старое не исчезает с карты — просто перестаёт спорить за внимание</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

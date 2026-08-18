@@ -43,7 +43,7 @@ function Choice({
       onClick={onClick}
       className={`flex h-[78px] flex-1 flex-col items-center justify-center gap-1.5 rounded-2xl text-[13.5px] font-semibold transition-colors ${
         active
-          ? "bg-ink text-white"
+          ? "bg-ink text-on-accent"
           : "border-[1.5px] border-line bg-surface text-ink-2"
       }`}
     >
@@ -230,7 +230,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
                 setCodeCopied(true);
                 setTimeout(() => setCodeCopied(false), 2000);
               }}
-              className="rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-white"
+              className="rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-on-accent"
             >
               {codeCopied ? "Скопирован" : "Копировать"}
             </button>
@@ -239,7 +239,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
         <div className="flex flex-col gap-2.5">
           <Link
             href={`/pet/${result.id}`}
-            className="rounded-2xl bg-ink py-3.5 font-semibold text-white"
+            className="rounded-2xl bg-ink py-3.5 font-semibold text-on-accent"
           >
             Открыть заявку
           </Link>
@@ -292,7 +292,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
                   type="button"
                   onClick={() => removePhoto(i)}
                   aria-label="Удалить фото"
-                  className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white"
+                  className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-ink text-on-accent"
                 >
                   <CloseIcon size={14} />
                 </button>
@@ -394,7 +394,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
                   onClick={() => setEventDate(o.value)}
                   className={`flex h-11 items-center justify-center rounded-[13px] px-4 text-sm font-semibold ${
                     eventDate === o.value
-                      ? "bg-ink text-white"
+                      ? "bg-ink text-on-accent"
                       : "border-[1.5px] border-line bg-surface text-ink-2"
                   }`}
                 >
@@ -483,7 +483,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
             <button
               type="button"
               onClick={next}
-              className="flex h-[54px] flex-1 items-center justify-center gap-2 rounded-2xl bg-ink text-[15px] font-semibold text-white"
+              className="flex h-[54px] flex-1 items-center justify-center gap-2 rounded-2xl bg-ink text-[15px] font-semibold text-on-accent"
             >
               {step === 0 && photos.length === 0 ? "Пропустить фото" : "Далее"}
               <ChevronRightIcon size={18} />
@@ -493,7 +493,7 @@ export default function ReportForm({ initialType }: { initialType: ReportType })
               type="button"
               onClick={submit}
               disabled={sending}
-              className="flex h-[54px] flex-1 items-center justify-center rounded-2xl bg-ink text-[15px] font-semibold text-white disabled:opacity-50"
+              className="flex h-[54px] flex-1 items-center justify-center rounded-2xl bg-ink text-[15px] font-semibold text-on-accent disabled:opacity-50"
             >
               {sending ? "Публикуем…" : "Опубликовать"}
             </button>
